@@ -1,0 +1,23 @@
+{
+  "name": "meu-backend",
+  "version": "1.0.0",
+  "description": "Exemplo Express + JWT + Firebase(optional) - scaffold gerado pelo ChatGPT",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "hashpw": "node scripts/hashPassword.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "firebase-admin": "^11.10.1",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

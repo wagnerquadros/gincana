@@ -61,9 +61,38 @@ git push -uf origin main
 ## Estrutura de Pastas (início)
 
 ```text
-gincana/
-├─ backend/
-│  └─ src/
-└─ frontend/
-   └─ src/
+meu-projeto/
+│
+├── frontend/              # Aplicação React
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── assets/        # Imagens, ícones, fontes...
+│   │   ├── components/    # Componentes reutilizáveis
+│   │   ├── pages/         # Páginas principais (Home, Login, etc.)
+│   │   ├── hooks/         # Custom hooks
+│   │   ├── context/       # Context API (estado global)
+│   │   ├── services/      # Conexão com API (axios/fetch)
+│   │   ├── routes/        # Definições de rotas
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── .env               # Variáveis de ambiente (ex: URL da API)
+│   ├── package.json
+│   └── vite.config.js     # ou webpack.config.js, dependendo do bundler
+│
+├── backend/               # API Node.js
+│   ├── src/
+│   │   ├── config/        # Configurações (db, cors, auth...)
+│   │   ├── controllers/   # Lógica dos endpoints
+│   │   ├── data/          # Acesso a dados (mock ou queries)
+│   │   ├── middlewares/   # Middlewares (auth, erros, logs...)
+│   │   ├── models/        # Modelos de dados (caso use ORM)
+│   │   ├── routes/        # Rotas da API
+│   │   ├── services/      # Lógica de negócio
+│   │   └── server.js      # Arquivo principal
+│   ├── .env
+│   └── package.json
+│
+├── .gitignore
+├── README.md
 ```
