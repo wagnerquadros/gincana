@@ -1,5 +1,13 @@
 # Grupo 01
 
+# Gincana App
+
+[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-5+-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-^4-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Platform-FFCA28?logo=firebase&logoColor=000)](https://firebase.google.com/)
+
 ## Clonando o repositório
 
 ```
@@ -57,6 +65,27 @@ git push -uf origin main
 - refactor(service): extrai cálculo de ranking para classe dedicada
 - test(controller): adiciona testes GET /api/pontuacoes
 - build(gradle): adiciona plugin jacoco para cobertura
+
+## 🧰 Tecnologias
+
+### Frontend
+
+- **React** (18+) + **Vite** (dev server e build)
+- **React DOM**
+- **CSS Modules / Tailwind (opcional)**
+
+### Backend
+
+- **Node.js** (18+)
+- **Express** (roteamento e middlewares)
+
+### Banco de Dados / Cloud
+
+- **Firebase**
+  - **Firestore** (BD NoSQL)
+  - **Authentication** (login)
+  - **Storage** (arquivos/imagens) _(opcional)_
+  - **Emulators** (desenvolvimento local)
 
 ## Estrutura de Pastas (início)
 
