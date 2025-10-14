@@ -1,5 +1,13 @@
 # Grupo 01
 
+# Gincana App
+
+[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-5+-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-^4-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Platform-FFCA28?logo=firebase&logoColor=000)](https://firebase.google.com/)
+
 ## Clonando o repositório
 
 ```
@@ -58,12 +66,62 @@ git push -uf origin main
 - test(controller): adiciona testes GET /api/pontuacoes
 - build(gradle): adiciona plugin jacoco para cobertura
 
+## 🧰 Tecnologias
+
+### Frontend
+
+- **React** (18+) + **Vite** (dev server e build)
+- **React DOM**
+- **CSS Modules / Tailwind (opcional)**
+
+### Backend
+
+- **Node.js** (18+)
+- **Express** (roteamento e middlewares)
+
+### Banco de Dados / Cloud
+
+- **Firebase**
+  - **Firestore** (BD NoSQL)
+  - **Authentication** (login)
+  - **Storage** (arquivos/imagens) _(opcional)_
+  - **Emulators** (desenvolvimento local)
+
 ## Estrutura de Pastas (início)
 
 ```text
-gincana/
-├─ backend/
-│  └─ src/
-└─ frontend/
-   └─ src/
+meu-projeto/
+│
+├── frontend/              # Aplicação React
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── assets/        # Imagens, ícones, fontes...
+│   │   ├── components/    # Componentes reutilizáveis
+│   │   ├── pages/         # Páginas principais (Home, Login, etc.)
+│   │   ├── hooks/         # Custom hooks
+│   │   ├── context/       # Context API (estado global)
+│   │   ├── services/      # Conexão com API (axios/fetch)
+│   │   ├── routes/        # Definições de rotas
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── .env               # Variáveis de ambiente (ex: URL da API)
+│   ├── package.json
+│   └── vite.config.js     # ou webpack.config.js, dependendo do bundler
+│
+├── backend/               # API Node.js
+│   ├── src/
+│   │   ├── config/        # Configurações (db, cors, auth...)
+│   │   ├── controllers/   # Lógica dos endpoints
+│   │   ├── data/          # Acesso a dados (mock ou queries)
+│   │   ├── middlewares/   # Middlewares (auth, erros, logs...)
+│   │   ├── models/        # Modelos de dados (caso use ORM)
+│   │   ├── routes/        # Rotas da API
+│   │   ├── services/      # Lógica de negócio
+│   │   └── server.js      # Arquivo principal
+│   ├── .env
+│   └── package.json
+│
+├── .gitignore
+├── README.md
 ```
