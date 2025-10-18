@@ -1,5 +1,5 @@
-const TipoNotificacaoEnum = require("../enums/TipoNotificacaoEnum");
-const StatusNotificacaoEnum = require("../enums/StatusNotificacaoEnum");
+const TipoNotificacaoEnum = require("./enums/TipoNotificacaoEnum");
+const StatusNotificacaoEnum = require("./enums/StatusNotificacaoEnum");
 
 class Notificacao {
   id;

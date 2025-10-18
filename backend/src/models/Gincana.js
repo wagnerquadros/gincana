@@ -1,4 +1,4 @@
-const StatusGincanaEnum = require("../enums/StatusGincanaEnum");
+const StatusGincanaEnum = require("./enums/StatusGincanaEnum");
 
 class Gincana {
   id;

@@ -1,4 +1,4 @@
-const RoleEnum = require("../enums/RoleEnum");
+const RoleEnum = require("./enums/RoleEnum");
 
 class Pai {
   id;

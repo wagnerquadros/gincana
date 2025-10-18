@@ -1,5 +1,5 @@
-const TipoAtividadeEnum = require("../enums/TipoAtividadeEnum");
-const StatusAtividadeEnum = require("../enums/StatusAtividadeEnum");
+const TipoAtividadeEnum = require("./enums/TipoAtividadeEnum");
+const StatusAtividadeEnum = require("./enums/StatusAtividadeEnum");
 
 class Atividade {
   id;
