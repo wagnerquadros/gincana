@@ -10,15 +10,26 @@ class Gincana {
   createdAt;
   updatedAt;
 
-  constructor(id, nome, dataInicio, dataFim, anoReferencia, status) {
-    this.id = id;
-    this.nome = nome;
-    this.dataInicio = new Date(dataInicio);
-    this.dataFim = new Date(dataFim);
-    this.anoReferencia = anoReferencia;
-    this.status = status;
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+  // aceite createdAt/updatedAt para preservar quando vier do Firestore
+  constructor(
+    id,
+    nome,
+    dataInicio,
+    dataFim,
+    anoReferencia,
+    status,
+    createdAt,
+    updatedAt
+  ) {
+    this.id = id ?? null;
+    this.nome = nome ?? null;
+    this.dataInicio = dataInicio ? new Date(dataInicio) : null;
+    this.dataFim = dataFim ? new Date(dataFim) : null;
+    this.anoReferencia =
+      typeof anoReferencia !== "undefined" ? anoReferencia : null;
+    this.status = status ?? "ATIVA";
+    this.createdAt = createdAt ? new Date(createdAt) : new Date();
+    this.updatedAt = updatedAt ? new Date(updatedAt) : new Date();
   }
 
   toObject() {
