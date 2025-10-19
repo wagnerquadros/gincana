@@ -1,29 +1,34 @@
 class Pontuacao {
   id;
-  equipe;
-  atividade;
+  equipeId;
+  atividadeId;
   pontosObtidos;
   bonus;
   penalidade;
   criadoEm;
 
-  constructor(id, equipe, atividade, pontosObtidos, bonus, penalidade) {
+  constructor(
+    id,
+    equipeId,
+    atividadeId,
+    pontosObtidos = 0,
+    bonus = 0,
+    penalidade = 0
+  ) {
     this.id = id;
-    this.equipe = equipe;
-    this.atividade = atividade;
-    this.pontosObtidos = pontosObtidos;
-    this.bonus = bonus;
-    this.penalidade = penalidade;
+    this.equipeId = equipeId;
+    this.atividadeId = atividadeId;
+    this.pontosObtidos = pontosObtidos || 0;
+    this.bonus = bonus || 0;
+    this.penalidade = penalidade || 0;
     this.criadoEm = new Date();
   }
 
   toObject() {
     return {
       id: this.id,
-      equipe: this.equipe?.toObject ? this.equipe.toObject() : this.equipe,
-      atividade: this.atividade?.toObject
-        ? this.atividade.toObject()
-        : this.atividade,
+      equipeId: this.equipeId,
+      atividadeId: this.atividadeId,
       pontosObtidos: this.pontosObtidos,
       bonus: this.bonus,
       penalidade: this.penalidade,
@@ -40,8 +45,7 @@ class Pontuacao {
       d.atividadeId,
       d.pontosObtidos,
       d.bonus,
-      d.penalidade,
-      d.criadoEm?.toDate ? d.criadoEm.toDate() : d.criadoEm
+      d.penalidade
     );
   }
 }

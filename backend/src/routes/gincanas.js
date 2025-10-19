@@ -3,6 +3,7 @@ const router = express.Router();
 const { db } = require("../../firebase");
 const Gincana = require("../models/Gincana");
 const { converterData, formatarData } = require("../utils/date");
+const { calcularRankingGincana } = require("../services/ranking");
 
 //POST /gincana
 router.post("/", async (req, res) => {
@@ -185,3 +186,15 @@ router.get("/", async (_req, res) => {
 });
 
 module.exports = router;
+
+// GET /gincanas/:id/ranking — calcula e retorna ranking atual
+router.get("/:id/ranking", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ranking = await calcularRankingGincana(id);
+    res.json({ gincanaId: id, ranking });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: e.message });
+  }
+});
