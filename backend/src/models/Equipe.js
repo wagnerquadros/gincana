@@ -13,8 +13,8 @@ class Equipe {
     this.nome = nome;
     this.ativo = !!ativo;
     this.pontuacoes = pontuacoes;
-    this.criadoEm = new Date();
-    this.atualizadoEm = new Date();
+    this.criadoEm = criadoEm;
+    this.atualizadoEm = atualizadoEm;
   }
 
   toObject() {

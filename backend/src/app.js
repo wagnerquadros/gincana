@@ -4,6 +4,8 @@ const gincanasRoutes = require("./routes/gincanas");
 const atividadesRoutes = require("./routes/atividades");
 
 const app = express();
+
+app.use(cors()); 
 app.use(express.json());
 
 // health
