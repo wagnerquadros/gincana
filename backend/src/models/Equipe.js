@@ -1,9 +1,17 @@
 class Equipe {
-  constructor(id, gincana, nome, ativo, pontuacoes = [], criadoEm = new Date(), atualizadoEm = new Date()) {
+  id;
+  gincanaId;
+  nome;
+  ativo;
+  pontuacoes;
+  criadoEm;
+  atualizadoEm;
+
+  constructor(id, gincanaId, nome, ativo, pontuacoes = []) {
     this.id = id;
-    this.gincana = gincana; 
+    this.gincanaId = gincanaId;
     this.nome = nome;
-    this.ativo = ativo;
+    this.ativo = !!ativo;
     this.pontuacoes = pontuacoes;
     this.criadoEm = criadoEm;
     this.atualizadoEm = atualizadoEm;
@@ -12,10 +20,18 @@ class Equipe {
   toObject() {
     return {
       id: this.id,
-      gincana: typeof this.gincana === "object" ? this.gincana.id : this.gincana,
+      gincanaId: this.gincanaId,
       nome: this.nome,
       ativo: this.ativo,
-      pontuacoes: this.pontuacoes.map((p) => (p.id ? p.id : p)),
+      pontuacoes: this.pontuacoes.map((p) => ({
+        id: p.id || null,
+        equipeId: p.equipeId,
+        atividadeId: p.atividadeId,
+        pontosObtidos: p.pontosObtidos || 0,
+        bonus: p.bonus || 0,
+        penalidade: p.penalidade || 0,
+        criadoEm: p.criadoEm || new Date(),
+      })),
       criadoEm: this.criadoEm,
       atualizadoEm: this.atualizadoEm,
     };
@@ -24,15 +40,7 @@ class Equipe {
   static fromDoc(doc) {
     if (!doc.exists) return null;
     const d = doc.data();
-    return new Equipe(
-      doc.id,
-      d.gincana, // aqui pega o campo correto do Firestore
-      d.nome,
-      d.ativo,
-      d.pontuacoes || [],
-      d.criadoEm?.toDate ? d.criadoEm.toDate() : d.criadoEm,
-      d.atualizadoEm?.toDate ? d.atualizadoEm.toDate() : d.atualizadoEm
-    );
+    return new Equipe(doc.id, d.gincanaId, d.nome, d.ativo, d.pontuacoes || []);
   }
 }
 
