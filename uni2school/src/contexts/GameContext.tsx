@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Team, Prova, ProvaSubmission } from '../types/user';
+import { Team, Prova, ProvaSubmission, RankingSettings } from '../types/user';
 import { useAuth } from './AuthContext';
 
 interface GameContextType {
   teams: Team[];
   provas: Prova[];
+  rankingSettings: RankingSettings | null;
   loading: boolean;
   createTeam: (name: string, description: string, color: string) => Promise<void>;
   updateTeam: (teamId: string, name: string, description: string, color: string) => Promise<void>;
@@ -16,7 +17,7 @@ interface GameContextType {
   joinTeam: (teamId: string) => Promise<void>;
   submitProva: (provaId: string, content: string) => Promise<void>;
   evaluateSubmission: (provaId: string, submissionId: string, points: number, feedback: string, isGradeVisible: boolean) => Promise<void>;
-  refreshData: () => Promise<void>;
+  toggleRankingVisibility: (isVisible: boolean) => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -32,46 +33,10 @@ export function useGame() {
 export function GameProvider({ children }: { children: ReactNode }) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [provas, setProvas] = useState<Prova[]>([]);
+  const [rankingSettings, setRankingSettings] = useState<RankingSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const { currentUser, userProfile } = useAuth();
 
-  const refreshData = async () => {
-    if (!currentUser) return;
-
-    try {
-      setLoading(true);
-      
-      // Buscar equipes
-      const teamsSnapshot = await getDocs(collection(db, 'teams'));
-      const teamsData = teamsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as Team[];
-
-      // Buscar provas
-      const provasSnapshot = await getDocs(
-        query(collection(db, 'provas'), orderBy('createdAt', 'desc'))
-      );
-      const provasData = provasSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        submissions: doc.data().submissions?.map((sub: any) => ({
-          ...sub,
-          submittedAt: sub.submittedAt?.toDate() || new Date(),
-          evaluatedAt: sub.evaluatedAt?.toDate() || undefined,
-        })) || [],
-      })) as Prova[];
-
-      setTeams(teamsData);
-      setProvas(provasData);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const createTeam = async (name: string, description: string, color: string) => {
     if (!currentUser || !userProfile) return;
@@ -88,7 +53,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       };
 
       await addDoc(collection(db, 'teams'), teamData);
-      await refreshData();
     } catch (error) {
       console.error('Erro ao criar equipe:', error);
       throw error;
@@ -105,7 +69,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         description,
         color,
       });
-      await refreshData();
     } catch (error) {
       console.error('Erro ao atualizar equipe:', error);
       throw error;
@@ -129,7 +92,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
       
       await deleteDoc(teamRef);
-      await refreshData();
     } catch (error) {
       console.error('Erro ao excluir equipe:', error);
       throw error;
@@ -159,8 +121,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       // Atualizar teamId do usuário
       const userRef = doc(db, 'users', memberId);
       await updateDoc(userRef, { teamId: toTeamId });
-
-      await refreshData();
     } catch (error) {
       console.error('Erro ao transferir membro:', error);
       throw error;
@@ -183,7 +143,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       };
 
       await addDoc(collection(db, 'provas'), provaData);
-      await refreshData();
     } catch (error) {
       console.error('Erro ao criar prova:', error);
       throw error;
@@ -204,8 +163,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         // Atualizar perfil do usuário
         const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { teamId });
-        
-        await refreshData();
       }
     } catch (error) {
       console.error('Erro ao entrar na equipe:', error);
@@ -236,8 +193,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         const updatedSubmissions = [...prova.submissions, submission];
         await updateDoc(provaRef, { submissions: updatedSubmissions });
-        
-        await refreshData();
       }
     } catch (error) {
       console.error('Erro ao submeter prova:', error);
@@ -268,7 +223,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
 
         await updateDoc(provaRef, { submissions: updatedSubmissions });
-        await refreshData();
       }
     } catch (error) {
       console.error('Erro ao avaliar prova:', error);
@@ -276,13 +230,101 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const toggleRankingVisibility = async (isVisible: boolean) => {
+    if (!currentUser || !userProfile) return;
+
+    try {
+      const rankingSnapshot = await getDocs(collection(db, 'rankingSettings'));
+      if (rankingSnapshot.empty) {
+        // Criar configurações se não existirem
+        const newSettings = {
+          isVisible,
+          lastUpdated: new Date(),
+          updatedBy: currentUser.uid,
+        };
+        await addDoc(collection(db, 'rankingSettings'), newSettings);
+      } else {
+        // Atualizar configurações existentes
+        const rankingDoc = rankingSnapshot.docs[0];
+        const rankingRef = doc(db, 'rankingSettings', rankingDoc.id);
+        await updateDoc(rankingRef, {
+          isVisible,
+          lastUpdated: new Date(),
+          updatedBy: currentUser.uid,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao alterar visibilidade do ranking:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
-    refreshData();
+    if (!currentUser) return;
+
+    // Configurar listeners em tempo real
+    const teamsUnsubscribe = onSnapshot(collection(db, 'teams'), (snapshot) => {
+      const teamsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+      })) as Team[];
+      setTeams(teamsData);
+    });
+
+    const provasUnsubscribe = onSnapshot(
+      query(collection(db, 'provas'), orderBy('createdAt', 'desc')),
+      (snapshot) => {
+        const provasData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date(),
+          submissions: doc.data().submissions?.map((sub: any) => ({
+            ...sub,
+            submittedAt: sub.submittedAt?.toDate() || new Date(),
+            evaluatedAt: sub.evaluatedAt?.toDate() || undefined,
+          })) || [],
+        })) as Prova[];
+        setProvas(provasData);
+      }
+    );
+
+    const rankingUnsubscribe = onSnapshot(collection(db, 'rankingSettings'), (snapshot) => {
+      if (snapshot.empty) {
+        // Criar configurações padrão se não existirem
+        const defaultSettings = {
+          isVisible: false,
+          lastUpdated: new Date(),
+          updatedBy: currentUser.uid,
+        };
+        addDoc(collection(db, 'rankingSettings'), defaultSettings);
+        setRankingSettings({
+          id: 'default',
+          ...defaultSettings,
+        });
+      } else {
+        const rankingDoc = snapshot.docs[0];
+        setRankingSettings({
+          id: rankingDoc.id,
+          ...rankingDoc.data(),
+          lastUpdated: rankingDoc.data().lastUpdated?.toDate() || new Date(),
+        } as RankingSettings);
+      }
+      setLoading(false);
+    });
+
+    // Cleanup dos listeners
+    return () => {
+      teamsUnsubscribe();
+      provasUnsubscribe();
+      rankingUnsubscribe();
+    };
   }, [currentUser]);
 
   const value = {
     teams,
     provas,
+    rankingSettings,
     loading,
     createTeam,
     updateTeam,
@@ -292,7 +334,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     joinTeam,
     submitProva,
     evaluateSubmission,
-    refreshData,
+    toggleRankingVisibility,
   };
 
   return (

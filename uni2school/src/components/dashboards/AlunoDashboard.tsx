@@ -1,12 +1,13 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import { BookOpen, Trophy, Users, LogOut, RefreshCw } from 'lucide-react';
+import { BookOpen, Trophy, Users, LogOut } from 'lucide-react';
 import TeamSelection from '../TeamSelection';
 import ProvaList from '../ProvaList';
+import TeamRanking from '../TeamRanking';
 
 export default function AlunoDashboard() {
   const { userProfile, signOut } = useAuth();
-  const { teams, provas, refreshData } = useGame();
+  const { teams, provas, rankingSettings } = useGame();
 
   const userTeam = teams.find(team => team.members.includes(userProfile?.uid || ''));
   const hasTeam = !!userProfile?.teamId || !!userTeam;
@@ -31,13 +32,6 @@ export default function AlunoDashboard() {
               <span className="text-sm text-gray-600">
                 Olá, {userProfile?.displayName}
               </span>
-              <button
-                onClick={refreshData}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Atualizar
-              </button>
               <button
                 onClick={() => signOut()}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
@@ -112,11 +106,17 @@ export default function AlunoDashboard() {
         </div>
 
         {!hasTeam ? (
-          <TeamSelection onTeamSelected={() => {
-            refreshData();
-          }} />
+          <TeamSelection onTeamSelected={() => {}} />
         ) : (
-          <ProvaList />
+          <div className="space-y-8">
+            <ProvaList />
+            
+            {/* Ranking das Equipes */}
+            <TeamRanking 
+              isVisible={rankingSettings?.isVisible || false}
+              showControls={false}
+            />
+          </div>
         )}
       </main>
     </div>

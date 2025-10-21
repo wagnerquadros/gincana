@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import { GraduationCap, Users, FileText, BarChart3, LogOut, Trophy, Calendar } from 'lucide-react';
+import { GraduationCap, Users, FileText, BarChart3, LogOut, Trophy, Calendar, Eye, EyeOff } from 'lucide-react';
 import CreateTeamModal from '../modals/CreateTeamModal';
 import CreateProvaModal from '../modals/CreateProvaModal';
 import TeamManagementList from '../TeamManagementList';
 import SubmissionList from '../SubmissionList';
+import TeamRanking from '../TeamRanking';
 
 export default function ProfessorDashboard() {
   const { userProfile, signOut } = useAuth();
-  const { teams, provas, loading } = useGame();
+  const { teams, provas, rankingSettings, loading, toggleRankingVisibility } = useGame();
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [showCreateProvaModal, setShowCreateProvaModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'provas' | 'evaluations'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'provas' | 'evaluations' | 'ranking'>('overview');
 
   const totalStudents = teams.reduce((acc, team) => acc + team.members.length, 0);
 
@@ -84,6 +85,16 @@ export default function ProfessorDashboard() {
               }`}
             >
               Avaliações
+            </button>
+            <button
+              onClick={() => setActiveTab('ranking')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
+                activeTab === 'ranking'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Ranking
             </button>
           </nav>
         </div>
@@ -397,6 +408,49 @@ export default function ProfessorDashboard() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'ranking' && (
+          <div>
+            <div className="mb-8 flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  Ranking das Equipes
+                </h2>
+                <p className="text-gray-600">
+                  Controle a visibilidade do ranking para os alunos
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => toggleRankingVisibility(!rankingSettings?.isVisible)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-lg transition font-semibold ${
+                    rankingSettings?.isVisible
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                >
+                  {rankingSettings?.isVisible ? (
+                    <>
+                      <EyeOff className="w-5 h-5" />
+                      Ocultar Ranking
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-5 h-5" />
+                      Mostrar Ranking
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            
+            <TeamRanking 
+              isVisible={rankingSettings?.isVisible || false}
+              showControls={true}
+              onToggleVisibility={(visible) => toggleRankingVisibility(visible)}
+            />
           </div>
         )}
       </main>

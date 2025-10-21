@@ -53,3 +53,19 @@ export interface MemberInfo {
   displayName?: string;
   joinedAt?: Date;
 }
+
+export interface RankingSettings {
+  id: string;
+  isVisible: boolean;
+  lastUpdated: Date;
+  updatedBy: string;
+}
+
+export interface TeamRanking {
+  teamId: string;
+  teamName: string;
+  teamColor: string;
+  totalPoints: number;
+  position: number;
+  memberCount: number;
+}
