@@ -1,0 +1,115 @@
+.team-container {
+  background-color: #f9fafb;
+  min-height: 100vh;
+  padding: 40px 80px;
+  font-family: 'Inter', sans-serif;
+  color: #111;
+}
+
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.team-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.new-team-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.new-team-btn:hover {
+  background-color: #333;
+}
+
+/* Cards de equipe */
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.team-card {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease-in-out;
+}
+
+.team-card:hover {
+  transform: translateY(-2px);
+}
+
+.team-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.team-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-details h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.team-details p {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 2px;
+}
+
+/* Botões de ação */
+.team-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background-color: #f4f4f5;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: #e4e4e7;
+}
+
+.icon-btn.delete:hover {
+  background-color: #fee2e2;
+}
