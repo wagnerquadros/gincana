@@ -1,0 +1,6 @@
+/* Aplicação das variáveis CSS */
+body {
+  background-color: var(--background-global-color);
+  color: var(--text-color);
+  transition: all 0.3s linear;
+}
