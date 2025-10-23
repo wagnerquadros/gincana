@@ -1,0 +1,181 @@
+.initial-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f0f4ff, #e8f0ff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+}
+
+/* Cabeçalho */
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+.tagline {
+  color: #777;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* Cards */
+.cards-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 80px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 300px;
+  padding: 30px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blue-bg { background-color: #e3ecff; }
+.green-bg { background-color: #e4f9ed; }
+
+.icon {
+  width: 36px;
+  height: 36px;
+}
+
+.blue-icon { color: #3b82f6; }
+.green-icon { color: #16a34a; }
+
+.card-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.card-desc {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  text-align: left;
+  color: #555;
+}
+
+.card-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 0.9rem;
+}
+
+/* Botões */
+.btn {
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.btn-dark {
+  background-color: #111;
+  color: white;
+}
+
+.btn-dark:hover {
+  background-color: #222;
+}
+
+.btn-light {
+  background: white;
+  border: 1px solid #ccc;
+  color: #333;
+}
+
+.btn-light:hover {
+  background: #f9f9f9;
+}
+
+/* Funcionalidades */
+.features {
+  text-align: center;
+  max-width: 900px;
+}
+
+.features-title {
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin-bottom: 40px;
+}
+
+.features-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 50px;
+}
+
+.feature-item {
+  max-width: 220px;
+  text-align: center;
+}
+
+.feature-icon {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 10px;
+}
+
+.purple-icon { color: #a855f7; }
+.orange-icon { color: #f97316; }
+.green-icon { color: #22c55e; }
+
+.feature-item h4 {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.feature-item p {
+  font-size: 0.9rem;
+  color: #666;
+}
