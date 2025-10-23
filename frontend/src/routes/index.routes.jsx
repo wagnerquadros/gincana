@@ -11,8 +11,8 @@ function AppRoutes() {
       <Route path='/' element={<Initial />} />
       <Route path='/activity' element={<ActivityManagement />} />
       <Route path='/dashboard' element={<Dashboard />} />
-      <Route paty='/report' element={<Report />} />
-      <Route paty='/team' element={<Team />} />
+      <Route path='/report' element={<Report />} />
+      <Route path='/team' element={<Team />} />
     </Routes>
   );
 }
