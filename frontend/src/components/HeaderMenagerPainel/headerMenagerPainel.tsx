@@ -1,20 +1,52 @@
-import './stylesHeaderMenagerPainel.css'
+import './stylesHeaderMenagerPainel.css';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function HeaderMenagerPainel() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handlerBack = () => {
+    navigate(-1);
+  };
+
   return (
-    <header className='painel-header'>
-      <div className='painel-header-left'>
-        <button className='btn-voltar'>← Voltar</button>
+    <header className="painel-header">
+      <div className="painel-header-left">
+        <button className="btn-voltar" onClick={handlerBack}>
+          ← Voltar
+        </button>
         <h1>Painel do Gestor</h1>
       </div>
-      <nav className='painel-nav'>
-        <a href='#'>Dashboard</a>
-        <a href='#'>Equipes</a>
-        <a href='#' className='active'>
+
+      <nav className="painel-nav">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className={location.pathname === '/dashboard' ? 'active' : ''}
+        >
+          Dashboard
+        </button>
+
+        <button
+          onClick={() => navigate('/team')}
+          className={location.pathname === '/team' ? 'active' : ''}
+        >
+          Equipes
+        </button>
+
+        <button
+          onClick={() => navigate('/activity')}
+          className={location.pathname === '/activity' ? 'active' : ''}
+        >
           Atividades
-        </a>
-        <a href='#'>Relatórios</a>
+        </button>
+
+        <button
+          onClick={() => navigate('/report')}
+          className={location.pathname === '/report' ? 'active' : ''}
+        >
+          Relatórios
+        </button>
       </nav>
     </header>
-  )
+  );
 }
