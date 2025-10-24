@@ -69,3 +69,36 @@ export interface TeamRanking {
   position: number;
   memberCount: number;
 }
+
+export type ReviewStatus = 'pending' | 'under_review' | 'resolved' | 'rejected';
+
+export interface ReviewRequest {
+  id: string;
+  title: string;
+  description: string;
+  reason: string;
+  evidence: EvidenceItem[];
+  status: ReviewStatus;
+  createdAt: Date;
+  createdBy: string;
+  createdByName: string;
+  teamId: string;
+  teamName: string;
+  targetTeamId?: string;
+  targetTeamName?: string;
+  targetProvaId?: string;
+  targetProvaTitle?: string;
+  reviewedAt?: Date;
+  reviewedBy?: string;
+  reviewedByName?: string;
+  resolution?: string;
+  priority: 'low' | 'medium' | 'high';
+}
+
+export interface EvidenceItem {
+  id: string;
+  type: 'image' | 'video' | 'document' | 'link';
+  url: string;
+  description: string;
+  uploadedAt: Date;
+}

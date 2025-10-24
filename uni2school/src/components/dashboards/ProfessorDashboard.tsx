@@ -1,21 +1,65 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import { GraduationCap, Users, FileText, BarChart3, LogOut, Trophy, Calendar, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Users, FileText, BarChart3, LogOut, Trophy, Calendar, Eye, EyeOff, Edit, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import CreateTeamModal from '../modals/CreateTeamModal';
 import CreateProvaModal from '../modals/CreateProvaModal';
+import EditProvaModal from '../modals/EditProvaModal';
+import DeleteProvaModal from '../modals/DeleteProvaModal';
 import TeamManagementList from '../TeamManagementList';
 import SubmissionList from '../SubmissionList';
 import TeamRanking from '../TeamRanking';
+import ReviewList from '../ReviewList';
+import type { Prova } from '../../types/user';
 
 export default function ProfessorDashboard() {
   const { userProfile, signOut } = useAuth();
-  const { teams, provas, rankingSettings, loading, toggleRankingVisibility } = useGame();
+  const { teams, provas, rankingSettings, loading, toggleRankingVisibility, toggleProvaStatus } = useGame();
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [showCreateProvaModal, setShowCreateProvaModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'provas' | 'evaluations' | 'ranking'>('overview');
+  const [showEditProvaModal, setShowEditProvaModal] = useState(false);
+  const [showDeleteProvaModal, setShowDeleteProvaModal] = useState(false);
+  const [selectedProva, setSelectedProva] = useState<Prova | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'provas' | 'evaluations' | 'ranking' | 'reviews'>('overview');
 
   const totalStudents = teams.reduce((acc, team) => acc + team.members.length, 0);
+
+  // Função para calcular pontuação real das equipes baseada nas provas avaliadas
+  const calculateTeamPoints = (teamId: string): number => {
+    let totalPoints = 0;
+    
+    provas.forEach(prova => {
+      const teamSubmissions = prova.submissions.filter(
+        submission => submission.teamId === teamId && 
+        submission.points !== undefined && 
+        submission.isGradeVisible
+      );
+      
+      teamSubmissions.forEach(submission => {
+        totalPoints += submission.points || 0;
+      });
+    });
+    
+    return totalPoints;
+  };
+
+  const handleEditProva = (prova: Prova) => {
+    setSelectedProva(prova);
+    setShowEditProvaModal(true);
+  };
+
+  const handleDeleteProva = (prova: Prova) => {
+    setSelectedProva(prova);
+    setShowDeleteProvaModal(true);
+  };
+
+  const handleToggleProvaStatus = async (prova: Prova) => {
+    try {
+      await toggleProvaStatus(prova.id, !prova.isActive);
+    } catch (error) {
+      console.error('Erro ao alterar status da prova:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
@@ -95,6 +139,16 @@ export default function ProfessorDashboard() {
               }`}
             >
               Ranking
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
+                activeTab === 'reviews'
+                  ? 'border-emerald-500 text-emerald-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Solicitações de Revisão
             </button>
           </nav>
         </div>
@@ -255,7 +309,7 @@ export default function ProfessorDashboard() {
                       <div className="text-right">
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <Trophy className="w-4 h-4" />
-                          {team.totalPoints} pts
+                          {calculateTeamPoints(team.id)} pts
                         </div>
                       </div>
                     </div>
@@ -330,19 +384,69 @@ export default function ProfessorDashboard() {
                   {provas.map((prova) => (
                     <div key={prova.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium text-gray-800">{prova.title}</h4>
-                          <p className="text-sm text-gray-600">{prova.description}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="font-medium text-gray-800">{prova.title}</h4>
+                            <div className="flex items-center gap-2">
+                              {prova.isActive ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+                                  Ativa
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                  <div className="w-2 h-2 bg-gray-400 rounded-full mr-1"></div>
+                                  Inativa
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{prova.description}</p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Trophy className="w-4 h-4" />
+                              {prova.maxPoints} pontos
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              {prova.submissions.length} submissões
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {prova.createdAt.toLocaleDateString('pt-BR')}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <Trophy className="w-4 h-4" />
-                            {prova.maxPoints} pts
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                            <Calendar className="w-3 h-3" />
-                            {prova.createdAt.toLocaleDateString()}
-                          </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          <button
+                            onClick={() => handleToggleProvaStatus(prova)}
+                            className={`p-2 rounded-lg transition ${
+                              prova.isActive
+                                ? 'text-green-600 hover:bg-green-50'
+                                : 'text-gray-400 hover:bg-gray-50'
+                            }`}
+                            title={prova.isActive ? 'Desativar prova' : 'Ativar prova'}
+                          >
+                            {prova.isActive ? (
+                              <ToggleRight className="w-5 h-5" />
+                            ) : (
+                              <ToggleLeft className="w-5 h-5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleEditProva(prova)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="Editar prova"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProva(prova)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Excluir prova"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -453,6 +557,21 @@ export default function ProfessorDashboard() {
             />
           </div>
         )}
+
+        {activeTab === 'reviews' && (
+          <div>
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                Solicitações de Revisão
+              </h2>
+              <p className="text-gray-600">
+                Gerencie as solicitações de revisão e contestações das equipes
+              </p>
+            </div>
+            
+            <ReviewList showControls={true} />
+          </div>
+        )}
       </main>
 
       <CreateTeamModal 
@@ -463,6 +582,26 @@ export default function ProfessorDashboard() {
         isOpen={showCreateProvaModal} 
         onClose={() => setShowCreateProvaModal(false)} 
       />
+      {selectedProva && (
+        <>
+          <EditProvaModal 
+            isOpen={showEditProvaModal} 
+            onClose={() => {
+              setShowEditProvaModal(false);
+              setSelectedProva(null);
+            }}
+            prova={selectedProva}
+          />
+          <DeleteProvaModal 
+            isOpen={showDeleteProvaModal} 
+            onClose={() => {
+              setShowDeleteProvaModal(false);
+              setSelectedProva(null);
+            }}
+            prova={selectedProva}
+          />
+        </>
+      )}
     </div>
   );
 }

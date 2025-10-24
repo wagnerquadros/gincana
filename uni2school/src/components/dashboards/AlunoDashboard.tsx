@@ -1,13 +1,14 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import { BookOpen, Trophy, Users, LogOut } from 'lucide-react';
+import { BookOpen, Trophy, Users, LogOut, AlertTriangle } from 'lucide-react';
 import TeamSelection from '../TeamSelection';
 import ProvaList from '../ProvaList';
-import TeamRanking from '../TeamRanking';
+import StudentTeamRanking from '../StudentTeamRanking';
+import ReviewList from '../ReviewList';
 
 export default function AlunoDashboard() {
   const { userProfile, signOut } = useAuth();
-  const { teams, provas, rankingSettings } = useGame();
+  const { teams, provas, rankingSettings, reviewRequests } = useGame();
 
   const userTeam = teams.find(team => team.members.includes(userProfile?.uid || ''));
   const hasTeam = !!userProfile?.teamId || !!userTeam;
@@ -18,6 +19,9 @@ export default function AlunoDashboard() {
   );
   const evaluatedSubmissions = userSubmissions.filter(sub => sub.points !== undefined && sub.isGradeVisible);
   const totalPoints = evaluatedSubmissions.reduce((acc, sub) => acc + (sub.points || 0), 0);
+
+  // Filtrar solicitações de revisão do usuário
+  const userReviewRequests = reviewRequests.filter(review => review.createdBy === userProfile?.uid);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -54,7 +58,7 @@ export default function AlunoDashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
             <div className="flex items-center justify-between">
               <div>
@@ -103,6 +107,18 @@ export default function AlunoDashboard() {
               </div>
             </div>
           </div>
+
+          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Solicitações</p>
+                <p className="text-3xl font-bold text-gray-800">{userReviewRequests.length}</p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </div>
         </div>
 
         {!hasTeam ? (
@@ -112,10 +128,23 @@ export default function AlunoDashboard() {
             <ProvaList />
             
             {/* Ranking das Equipes */}
-            <TeamRanking 
+            <StudentTeamRanking 
               isVisible={rankingSettings?.isVisible || false}
-              showControls={false}
             />
+            
+            {/* Solicitações de Revisão do Usuário */}
+            {userReviewRequests.length > 0 && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                  Minhas Solicitações de Revisão
+                </h3>
+                <ReviewList 
+                  showControls={false} 
+                  filterByTeam={userProfile?.teamId}
+                />
+              </div>
+            )}
           </div>
         )}
       </main>

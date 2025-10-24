@@ -1,23 +1,30 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Team, Prova, ProvaSubmission, RankingSettings } from '../types/user';
+import { Team, Prova, ProvaSubmission, RankingSettings, ReviewRequest, ReviewStatus } from '../types/user';
 import { useAuth } from './AuthContext';
 
 interface GameContextType {
   teams: Team[];
   provas: Prova[];
   rankingSettings: RankingSettings | null;
+  reviewRequests: ReviewRequest[];
   loading: boolean;
   createTeam: (name: string, description: string, color: string) => Promise<void>;
   updateTeam: (teamId: string, name: string, description: string, color: string) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
   transferMember: (memberId: string, fromTeamId: string, toTeamId: string) => Promise<void>;
   createProva: (title: string, description: string, instructions: string, maxPoints: number) => Promise<void>;
+  updateProva: (provaId: string, title: string, description: string, instructions: string, maxPoints: number) => Promise<void>;
+  deleteProva: (provaId: string) => Promise<void>;
+  toggleProvaStatus: (provaId: string, isActive: boolean) => Promise<void>;
   joinTeam: (teamId: string) => Promise<void>;
   submitProva: (provaId: string, content: string) => Promise<void>;
   evaluateSubmission: (provaId: string, submissionId: string, points: number, feedback: string, isGradeVisible: boolean) => Promise<void>;
   toggleRankingVisibility: (isVisible: boolean) => Promise<void>;
+  createReviewRequest: (reviewData: Omit<ReviewRequest, 'id'>) => Promise<void>;
+  updateReviewStatus: (reviewId: string, status: ReviewStatus, reviewedBy: string, resolution?: string) => Promise<void>;
+  deleteReviewRequest: (reviewId: string) => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -34,6 +41,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [provas, setProvas] = useState<Prova[]>([]);
   const [rankingSettings, setRankingSettings] = useState<RankingSettings | null>(null);
+  const [reviewRequests, setReviewRequests] = useState<ReviewRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const { currentUser, userProfile } = useAuth();
 
@@ -149,6 +157,49 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProva = async (provaId: string, title: string, description: string, instructions: string, maxPoints: number) => {
+    if (!currentUser || !userProfile) return;
+
+    try {
+      const provaRef = doc(db, 'provas', provaId);
+      await updateDoc(provaRef, {
+        title,
+        description,
+        instructions,
+        maxPoints,
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar prova:', error);
+      throw error;
+    }
+  };
+
+  const deleteProva = async (provaId: string) => {
+    if (!currentUser || !userProfile) return;
+
+    try {
+      const provaRef = doc(db, 'provas', provaId);
+      await deleteDoc(provaRef);
+    } catch (error) {
+      console.error('Erro ao excluir prova:', error);
+      throw error;
+    }
+  };
+
+  const toggleProvaStatus = async (provaId: string, isActive: boolean) => {
+    if (!currentUser || !userProfile) return;
+
+    try {
+      const provaRef = doc(db, 'provas', provaId);
+      await updateDoc(provaRef, {
+        isActive,
+      });
+    } catch (error) {
+      console.error('Erro ao alterar status da prova:', error);
+      throw error;
+    }
+  };
+
   const joinTeam = async (teamId: string) => {
     if (!currentUser || !userProfile) return;
 
@@ -259,6 +310,77 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const createReviewRequest = async (reviewData: Omit<ReviewRequest, 'id'>) => {
+    if (!currentUser || !userProfile) return;
+
+    try {
+      // Função recursiva para remover campos undefined
+      const removeUndefined = (obj: any): any => {
+        if (obj === null || obj === undefined) return null;
+        if (Array.isArray(obj)) return obj.map(removeUndefined);
+        if (typeof obj === 'object') {
+          const cleaned: any = {};
+          for (const [key, value] of Object.entries(obj)) {
+            if (value !== undefined) {
+              cleaned[key] = removeUndefined(value);
+            }
+          }
+          return cleaned;
+        }
+        return obj;
+      };
+
+      const reviewRequestData = {
+        ...removeUndefined(reviewData),
+        createdAt: new Date(),
+        evidence: reviewData.evidence.map(evidence => ({
+          ...evidence,
+          uploadedAt: new Date(),
+        })),
+      };
+
+      await addDoc(collection(db, 'reviewRequests'), reviewRequestData);
+    } catch (error) {
+      console.error('Erro ao criar solicitação de revisão:', error);
+      throw error;
+    }
+  };
+
+  const updateReviewStatus = async (reviewId: string, status: ReviewStatus, reviewedBy: string, resolution?: string) => {
+    if (!currentUser || !userProfile) return;
+
+    try {
+      const reviewRef = doc(db, 'reviewRequests', reviewId);
+      const updateData: any = {
+        status,
+        reviewedAt: new Date(),
+        reviewedBy,
+        reviewedByName: userProfile.displayName || userProfile.email,
+      };
+
+      if (resolution) {
+        updateData.resolution = resolution;
+      }
+
+      await updateDoc(reviewRef, updateData);
+    } catch (error) {
+      console.error('Erro ao atualizar status da revisão:', error);
+      throw error;
+    }
+  };
+
+  const deleteReviewRequest = async (reviewId: string) => {
+    if (!currentUser || !userProfile) return;
+
+    try {
+      const reviewRef = doc(db, 'reviewRequests', reviewId);
+      await deleteDoc(reviewRef);
+    } catch (error) {
+      console.error('Erro ao excluir solicitação de revisão:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     if (!currentUser) return;
 
@@ -310,14 +432,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
           lastUpdated: rankingDoc.data().lastUpdated?.toDate() || new Date(),
         } as RankingSettings);
       }
-      setLoading(false);
     });
+
+    const reviewRequestsUnsubscribe = onSnapshot(
+      query(collection(db, 'reviewRequests'), orderBy('createdAt', 'desc')),
+      (snapshot) => {
+        const reviewRequestsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date(),
+          reviewedAt: doc.data().reviewedAt?.toDate() || undefined,
+          evidence: doc.data().evidence?.map((evidence: any) => ({
+            ...evidence,
+            uploadedAt: evidence.uploadedAt?.toDate() || new Date(),
+          })) || [],
+        })) as ReviewRequest[];
+        setReviewRequests(reviewRequestsData);
+        setLoading(false);
+      }
+    );
 
     // Cleanup dos listeners
     return () => {
       teamsUnsubscribe();
       provasUnsubscribe();
       rankingUnsubscribe();
+      reviewRequestsUnsubscribe();
     };
   }, [currentUser]);
 
@@ -325,16 +465,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
     teams,
     provas,
     rankingSettings,
+    reviewRequests,
     loading,
     createTeam,
     updateTeam,
     deleteTeam,
     transferMember,
     createProva,
+    updateProva,
+    deleteProva,
+    toggleProvaStatus,
     joinTeam,
     submitProva,
     evaluateSubmission,
     toggleRankingVisibility,
+    createReviewRequest,
+    updateReviewStatus,
+    deleteReviewRequest,
   };
 
   return (
