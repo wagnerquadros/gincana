@@ -124,9 +124,9 @@ export default function EquipesGestor() {
             equipes.map((equipe) => (
               <div key={equipe.id} className="card">
                 <h2 style={{ fontSize: 20, color: "#3b82f6", marginBottom: 10 }}>{equipe.nome}</h2>
-                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 10, color: "black" }}>
                   <Award size={16} color="#fcd34d" />
-                  <span>Pontuações: <strong>{equipe.pontuacoes?.length || 0}</strong></span>
+                <span>Pontuações: <strong>{equipe.pontuacoes?.length || 0}</strong></span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
                   <MockedButton onClick={() => abrirModalVisualizar(equipe)} variant="secondary"><Eye size={16} /></MockedButton>
