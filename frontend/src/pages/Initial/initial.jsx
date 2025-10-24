@@ -11,7 +11,7 @@ function Initial() {
   };
 
   const handlerManegerTeam = () => {
-    navigate('/');
+    navigate('/dashboardTeam');
   };
 
   return (
