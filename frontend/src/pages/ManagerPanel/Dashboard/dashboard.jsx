@@ -24,36 +24,24 @@ function Dashboard() {
       {/* Cards superiores */}
       <div className='dashboard-top'>
         <div className='stat-card'>
-          <div className='icon'>
-            <Users />
-          </div>
           <h4>Total de Equipes</h4>
           <h2>4</h2>
           <p>94 estudantes participando</p>
         </div>
 
         <div className='stat-card'>
-          <div className='icon'>
-            <Calendar />
-          </div>
           <h4>Atividades Ativas</h4>
           <h2>2</h2>
           <p>6 atividades no total</p>
         </div>
 
         <div className='stat-card'>
-          <div className='icon'>
-            <Trophy />
-          </div>
           <h4>Pontuação Líder</h4>
           <h2>850</h2>
           <p>Águias Douradas</p>
         </div>
 
         <div className='stat-card'>
-          <div className='icon'>
-            <BarChart3 />
-          </div>
           <h4>Engajamento</h4>
           <h2>87%</h2>
           <p>Participação média</p>
