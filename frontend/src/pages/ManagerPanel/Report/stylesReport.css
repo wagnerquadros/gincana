@@ -1,21 +1,23 @@
 .report-container {
-  background-color: #f9fafb;
+  background: #f9fafb;
   min-height: 100vh;
-  padding: 40px;
-  font-family: 'Inter', sans-serif;
   color: #111;
+  font-family: 'Inter', sans-serif;
 }
 
 .report-title {
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 30px;
+  margin-left: 10%;
 }
 
 .report-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 20px;
+  width: 80%;
+  margin: 0 auto;
 }
 
 .report-card {
