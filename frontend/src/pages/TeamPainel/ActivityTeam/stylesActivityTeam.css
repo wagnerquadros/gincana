@@ -1,0 +1,110 @@
+.activity-team-container {
+  background-color: #f9fafb;
+  font-family: 'Inter', sans-serif;
+  color: #111;
+  min-height: 100vh;
+}
+
+.activity-header-text {
+  width: 80%;
+  margin: 40px auto 0 auto;
+}
+
+.activity-team-container h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+/* ==== CARD ==== */
+.activity-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  width: 80%;
+  margin: 40px auto 0 auto;
+}
+
+.activity-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ==== INFO ==== */
+.activity-info h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.activity-description {
+  color: #444;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.activity-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* ==== STATUS + AÇÃO ==== */
+.activity-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.activity-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+.activity-status.available {
+  background: #111;
+  color: #fff;
+}
+
+.activity-status.progress {
+  background: #f1f5f9;
+  color: #111;
+}
+
+/* ==== BOTÃO ==== */
+.activity-button {
+  background: #111;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.activity-button:hover {
+  background: #000;
+}
+
+/* ==== RESPONSIVIDADE ==== */
+@media (max-width: 768px) {
+  .activity-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .activity-actions {
+    align-items: flex-start;
+  }
+}
