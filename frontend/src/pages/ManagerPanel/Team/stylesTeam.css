@@ -1,9 +1,9 @@
 .team-container {
   background-color: #f9fafb;
-  min-height: 100vh;
-  padding: 40px 80px;
+  margin: 0 auto; /* centraliza o container horizontalmente */
   font-family: 'Inter', sans-serif;
   color: #111;
+  height: 100vh;
 }
 
 .team-header {
@@ -11,6 +11,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  margin: 10px auto 20px auto;
+  width: 80%;
 }
 
 .team-header h1 {
@@ -52,6 +54,8 @@
   align-items: center;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease-in-out;
+  width: 80%;
+  margin: 0 auto 10px auto;
 }
 
 .team-card:hover {
