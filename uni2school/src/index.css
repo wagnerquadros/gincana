@@ -1,3 +1,71 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilos para navegação mobile */
+@layer components {
+  .mobile-nav-item {
+    @apply flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-all duration-200 min-w-0 flex-1 mx-1;
+  }
+  
+  .mobile-nav-item-active {
+    @apply bg-blue-50;
+  }
+  
+  .mobile-nav-item-inactive {
+    @apply hover:bg-gray-50;
+  }
+  
+  .mobile-nav-icon {
+    @apply w-5 h-5 transition-colors duration-200;
+  }
+  
+  .mobile-nav-icon-active {
+    @apply text-blue-600;
+  }
+  
+  .mobile-nav-icon-inactive {
+    @apply text-gray-500;
+  }
+  
+  .mobile-nav-label {
+    @apply text-xs font-medium mt-1 transition-colors duration-200;
+  }
+  
+  .mobile-nav-label-active {
+    @apply text-blue-600;
+  }
+  
+  .mobile-nav-label-inactive {
+    @apply text-gray-500;
+  }
+}
+
+/* Garantir que o conteúdo não seja sobreposto pela navegação inferior */
+@layer utilities {
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .mb-safe-bottom {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .mobile-content-padding {
+    padding-bottom: 6rem; /* 96px para dar espaço à navegação inferior */
+  }
+  
+  .tab-content-padding {
+    padding-bottom: 1rem; /* Espaço extra para o conteúdo das abas */
+  }
+  
+  @media (min-width: 768px) {
+    .mobile-content-padding {
+      padding-bottom: 2rem; /* 32px para desktop */
+    }
+    
+    .tab-content-padding {
+      padding-bottom: 0; /* Sem padding extra no desktop */
+    }
+  }
+}

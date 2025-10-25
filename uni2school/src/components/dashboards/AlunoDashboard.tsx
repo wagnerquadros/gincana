@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import { BookOpen, Trophy, Users, LogOut, AlertTriangle } from 'lucide-react';
+import { BookOpen, LogOut } from 'lucide-react';
 import TeamSelection from '../TeamSelection';
 import ProvaList from '../ProvaList';
 import StudentTeamRanking from '../StudentTeamRanking';
-import ReviewList from '../ReviewList';
+import BottomNavigation from '../BottomNavigation';
+import TeamTab from '../tabs/TeamTab';
+import ProfileTab from '../tabs/ProfileTab';
+import ReviewsTab from '../tabs/ReviewsTab';
 
 export default function AlunoDashboard() {
   const { userProfile, signOut } = useAuth();
   const { teams, provas, rankingSettings, reviewRequests } = useGame();
+  const [activeTab, setActiveTab] = useState('team');
 
   const userTeam = teams.find(team => team.members.includes(userProfile?.uid || ''));
   const hasTeam = !!userProfile?.teamId || !!userTeam;
@@ -17,15 +22,41 @@ export default function AlunoDashboard() {
   const userSubmissions = provas.flatMap(prova => 
     prova.submissions.filter(sub => sub.studentId === userProfile?.uid)
   );
-  const evaluatedSubmissions = userSubmissions.filter(sub => sub.points !== undefined && sub.isGradeVisible);
-  const totalPoints = evaluatedSubmissions.reduce((acc, sub) => acc + (sub.points || 0), 0);
 
   // Filtrar solicitações de revisão do usuário
   const userReviewRequests = reviewRequests.filter(review => review.createdBy === userProfile?.uid);
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'team':
+        return <TeamTab />;
+      case 'provas':
+        return (
+          <div className="p-4 tab-content-padding">
+            <ProvaList />
+          </div>
+        );
+      case 'ranking':
+        return (
+          <div className="p-4 tab-content-padding">
+            <StudentTeamRanking 
+              isVisible={rankingSettings?.isVisible || false}
+            />
+          </div>
+        );
+      case 'reviews':
+        return <ReviewsTab />;
+      case 'profile':
+        return <ProfileTab />;
+      default:
+        return <TeamTab />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
+      {/* Header - apenas em desktop */}
+      <nav className="bg-white shadow-sm border-b border-gray-200 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -48,106 +79,44 @@ export default function AlunoDashboard() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            Bem-vindo à Gincana!
-          </h2>
-          <p className="text-gray-600">
-            Acompanhe suas atividades e pontuação
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Pontos Totais</p>
-                <p className="text-3xl font-bold text-gray-800">{totalPoints}</p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Trophy className="w-6 h-6 text-blue-600" />
-              </div>
+      {/* Header Mobile */}
+      <div className="bg-white shadow-sm border-b border-gray-200 md:hidden">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-blue-600" />
+              <h1 className="text-lg font-bold text-gray-800">Gincana</h1>
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Atividades</p>
-                <p className="text-3xl font-bold text-gray-800">{userSubmissions.length}</p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <BookOpen className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Equipe</p>
-                <p className="text-lg font-bold text-gray-800">
-                  {userTeam ? userTeam.name : '-'}
-                </p>
-                {userTeam && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: userTeam.color }}
-                    />
-                    <span className="text-xs text-gray-500">
-                      {userTeam.totalPoints} pontos
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <Users className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Solicitações</p>
-                <p className="text-3xl font-bold text-gray-800">{userReviewRequests.length}</p>
-              </div>
-              <div className="bg-red-100 p-3 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-blue-600">
+                  {userProfile?.displayName?.charAt(0) || 'U'}
+                </span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Conteúdo Principal */}
+      <main className="mobile-content-padding">
         {!hasTeam ? (
-          <TeamSelection onTeamSelected={() => {}} />
-        ) : (
-          <div className="space-y-8">
-            <ProvaList />
-            
-            {/* Ranking das Equipes */}
-            <StudentTeamRanking 
-              isVisible={rankingSettings?.isVisible || false}
-            />
-            
-            {/* Solicitações de Revisão do Usuário */}
-            {userReviewRequests.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-orange-600" />
-                  Minhas Solicitações de Revisão
-                </h3>
-                <ReviewList 
-                  showControls={false} 
-                  filterByTeam={userProfile?.teamId}
-                />
-              </div>
-            )}
+          <div className="p-4">
+            <TeamSelection onTeamSelected={() => {}} />
           </div>
+        ) : (
+          renderTabContent()
         )}
       </main>
+
+      {/* Navegação Inferior - apenas em mobile */}
+      {hasTeam && (
+        <BottomNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          reviewCount={userReviewRequests.length}
+        />
+      )}
     </div>
   );
 }

@@ -6,6 +6,9 @@ export interface UserProfile {
   role: UserRole;
   displayName?: string;
   teamId?: string;
+  age?: number;
+  year?: string;
+  class?: string;
 }
 
 export interface Team {

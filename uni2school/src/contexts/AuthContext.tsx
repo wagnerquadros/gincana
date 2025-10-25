@@ -17,6 +17,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, role: UserRole, displayName?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,6 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserProfile(null);
   }
 
+  async function refreshUserProfile() {
+    if (currentUser) {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        setUserProfile(userDoc.data() as UserProfile);
+      }
+    }
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -87,7 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signUp,
     signIn,
-    signOut
+    signOut,
+    refreshUserProfile
   };
 
   return (
