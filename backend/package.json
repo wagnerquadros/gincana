@@ -5,6 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "test": "jest --runInBand --detectOpenHandles",
+    "test:e2e": "jest tests/e2e",
     "dev": "nodemon src/server.js",
     "hashpw": "node scripts/hashPassword.js",
     "seed:adm": "node src/scripts/seedAdm.js"
@@ -21,6 +23,9 @@
     "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "chalk": "^4.1.2",
+    "jest": "^30.2.0",
+    "nodemon": "^2.0.22",
+    "supertest": "^7.1.4"
   }
 }
