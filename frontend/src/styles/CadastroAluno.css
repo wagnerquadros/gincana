@@ -1,0 +1,106 @@
+@import url("./Login.css"); /* importa variáveis e estilos base */
+
+.cadastro-bg {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+      1200px 600px at 20% -10%,
+      #e0f2fe66,
+      transparent 60%
+    ),
+    radial-gradient(1000px 600px at 120% -20%, #dbeafe66, transparent 60%),
+    linear-gradient(180deg, var(--bg2), var(--bg1));
+  padding: 24px;
+}
+
+.cadastro-card {
+  width: min(420px, 100%);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 26px 24px 22px;
+  text-align: center;
+}
+
+.cadastro-title {
+  font-size: 28px;
+  margin: 8px 0 4px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.cadastro-subtitle {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.cadastro-form {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-cadastro {
+  margin-top: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.04s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+.btn-cadastro:hover {
+  background: var(--brand-600);
+}
+.btn-cadastro:active {
+  transform: translateY(1px);
+}
+
+.alert-sucesso {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.cadastro-foot {
+  margin: 14px 0 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.link-login {
+  color: var(--brand);
+  font-weight: 700;
+  text-decoration: none;
+}
+.link-login:hover {
+  text-decoration: underline;
+}
+
+/* Responsivo */
+@media (max-width: 420px) {
+  .cadastro-card {
+    padding: 22px 18px;
+  }
+  .cadastro-title {
+    font-size: 24px;
+  }
+  .trophy-wrap {
+    width: 52px;
+    height: 52px;
+  }
+}

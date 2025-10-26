@@ -1,7 +1,7 @@
 const RoleEnum = Object.freeze({
   ADM: "ADM",
   ALUNO: "ALUNO",
-  ORGANIZADOR: "ORGANIZADOR",
+  PROFESSOR: "PROFESSOR",
   PAI: "PAI",
 });
 

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "hashpw": "node scripts/hashPassword.js"
+    "hashpw": "node scripts/hashPassword.js",
+    "seed:adm": "node src/scripts/seedAdm.js"
   },
   "author": "",
   "license": "MIT",

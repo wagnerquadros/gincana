@@ -3,16 +3,16 @@ class Equipe {
   gincanaId;
   nome;
   ativo;
-  pontuacoes;
+  pontuacoesIds;
   criadoEm;
   atualizadoEm;
 
-  constructor(id, gincanaId, nome, ativo, pontuacoes = []) {
+  constructor(id, gincanaId, nome, ativo = true, pontuacoesIds = []) {
     this.id = id;
     this.gincanaId = gincanaId;
     this.nome = nome;
     this.ativo = !!ativo;
-    this.pontuacoes = pontuacoes;
+    this.pontuacoesIds = Array.isArray(pontuacoesIds) ? pontuacoesIds : [];
     this.criadoEm = new Date();
     this.atualizadoEm = new Date();
   }
@@ -23,15 +23,7 @@ class Equipe {
       gincanaId: this.gincanaId,
       nome: this.nome,
       ativo: this.ativo,
-      pontuacoes: this.pontuacoes.map((p) => ({
-        id: p.id || null,
-        equipeId: p.equipeId,
-        atividadeId: p.atividadeId,
-        pontosObtidos: p.pontosObtidos || 0,
-        bonus: p.bonus || 0,
-        penalidade: p.penalidade || 0,
-        criadoEm: p.criadoEm || new Date(),
-      })),
+      pontuacoesIds: this.pontuacoesIds,
       criadoEm: this.criadoEm,
       atualizadoEm: this.atualizadoEm,
     };
@@ -40,7 +32,13 @@ class Equipe {
   static fromDoc(doc) {
     if (!doc.exists) return null;
     const d = doc.data();
-    return new Equipe(doc.id, d.gincanaId, d.nome, d.ativo, d.pontuacoes || []);
+    return new Equipe(
+      doc.id,
+      d.gincanaId,
+      d.nome,
+      d.ativo,
+      d.pontuacoesIds || []
+    );
   }
 }
 

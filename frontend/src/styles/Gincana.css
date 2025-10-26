@@ -1,0 +1,154 @@
+:root {
+  --line: #e5e7eb;
+  --text: #0f172a;
+  --muted: #334155;
+  --blue: #2563eb;
+  --green-50: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-700: #166534;
+  --red: #ef4444;
+  --red-50: #fee2e2;
+  --red-200: #fecaca;
+  --red-800: #991b1b;
+  --ok-50: #dcfce7;
+  --ok-200: #bbf7d0;
+  --ok-700: #166534;
+  --card-bg: #fff;
+}
+
+/* layout basico da página */
+.page-wrap {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+/* alertas */
+.alert-erro {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--red-200);
+  background: var(--red-50);
+  color: var(--red-800);
+  font-size: 14px;
+}
+
+.alert-ok {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--ok-200);
+  background: var(--ok-50);
+  color: var(--ok-700);
+  font-size: 14px;
+}
+
+/* card */
+.card {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card-bg);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.status-pill--ativa {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+  color: var(--green-700);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* grid e campos */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-read {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.value {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fafafa;
+  font-size: 15px;
+  outline: none;
+}
+
+/* botoes */
+.btn-row {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary {
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.btn-secondary {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+}
+
+.btn-danger {
+  border: 1px solid var(--red);
+  background: var(--red);
+  color: #fff;
+}
+
+/* responsivo */
+@media (max-width: 640px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
