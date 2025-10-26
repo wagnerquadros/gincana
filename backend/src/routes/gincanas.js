@@ -1,12 +1,18 @@
+// routes/gincanas.js
 const express = require("express");
 const router = express.Router();
 const { db } = require("../../firebase");
 const Gincana = require("../models/Gincana");
 const { converterData, formatarData } = require("../utils/date");
 const { calcularRankingGincana } = require("../services/ranking");
+const {
+  authMiddleware,
+  authorizeRoles,
+} = require("../middlewares/authMiddleware");
+router.use(authMiddleware);
 
-//POST /gincana
-router.post("/", async (req, res) => {
+// POST /gincanas — ADM e PROFESSOR podem criar
+router.post("/", authorizeRoles("ADM", "PROFESSOR"), async (req, res) => {
   try {
     const ref = db.collection("gincanas").doc();
     const { nome, dataInicio, dataFim, anoReferencia, status } = req.body;
@@ -31,8 +37,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-//PUT /gincana/:id
-router.put("/:id", async (req, res) => {
+// PUT /gincanas/:id — ADM e PROFESSOR
+router.put("/:id", authorizeRoles("ADM", "PROFESSOR"), async (req, res) => {
   try {
     const { id } = req.params;
     const ref = db.collection("gincanas").doc(id);
@@ -69,79 +75,81 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// GET por ID — /gincana/:id
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const doc = await db.collection("gincanas").doc(id).get();
+// GET /gincanas/:id — todos logados (ADM/PROFESSOR/ALUNO)
+router.get(
+  "/:id",
+  authorizeRoles("ADM", "PROFESSOR", "ALUNO"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const doc = await db.collection("gincanas").doc(id).get();
 
-    if (!doc.exists) {
-      return res.status(404).json({ erro: "Gincana não encontrada" });
+      if (!doc.exists)
+        return res.status(404).json({ erro: "Gincana não encontrada" });
+
+      const g = Gincana.fromDoc(doc);
+      let gObj = g?.toObject ? g.toObject() : g;
+
+      if (gObj.dataInicio)
+        gObj.dataInicio = formatarData(new Date(gObj.dataInicio));
+      if (gObj.dataFim) gObj.dataFim = formatarData(new Date(gObj.dataFim));
+
+      res.json(gObj);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ erro: e.message });
     }
-
-    const g = Gincana.fromDoc(doc);
-    let gObj = g?.toObject ? g.toObject() : g;
-
-    if (gObj.dataInicio)
-      gObj.dataInicio = formatarData(new Date(gObj.dataInicio));
-    if (gObj.dataFim) gObj.dataFim = formatarData(new Date(gObj.dataFim));
-
-    res.json(gObj);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ erro: e.message });
   }
-});
+);
 
-// ENCERRAR GINCANA (PATCH /gincanas/:id/encerrar)
-router.patch("/:id/encerrar", async (req, res) => {
+// PATCH /gincanas/:id/encerrar — ADM e PROFESSOR
+router.patch(
+  "/:id/encerrar",
+  authorizeRoles("ADM", "PROFESSOR"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { dataFim } = req.body;
+
+      const ref = db.collection("gincanas").doc(id);
+      const snap = await ref.get();
+      if (!snap.exists)
+        return res.status(404).json({ erro: "Gincana não encontrada" });
+
+      const novaDataFim = converterData(dataFim) ?? new Date();
+
+      const payload = {
+        status: "ENCERRADA",
+        dataFim: novaDataFim,
+        updatedAt: new Date(),
+      };
+
+      await ref.set(payload, { merge: true });
+
+      const updated = Gincana.fromDoc(await ref.get());
+      let gObj = updated?.toObject ? updated.toObject() : updated;
+
+      if (gObj.dataInicio)
+        gObj.dataInicio = formatarData(new Date(gObj.dataInicio));
+      if (gObj.dataFim) gObj.dataFim = formatarData(new Date(gObj.dataFim));
+
+      res.json(gObj);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ erro: e.message });
+    }
+  }
+);
+
+// DELETE /gincanas/:id — somente ADM
+router.delete("/:id", authorizeRoles("ADM"), async (req, res) => {
   try {
     const { id } = req.params;
-    const { dataFim } = req.body;
-
     const ref = db.collection("gincanas").doc(id);
     const snap = await ref.get();
+
     if (!snap.exists)
       return res.status(404).json({ erro: "Gincana não encontrada" });
-
-    const gincanaAtual = snap.data();
-
-    // Converte a data de fim — se não for enviada, usa a data atual
-    const novaDataFim = converterData(dataFim) ?? new Date();
-
-    const payload = {
-      status: "ENCERRADA",
-      dataFim: novaDataFim,
-      updatedAt: new Date(),
-    };
-
-    await ref.set(payload, { merge: true });
-
-    const updated = Gincana.fromDoc(await ref.get());
-    let gObj = updated?.toObject ? updated.toObject() : updated;
-
-    // Formata datas no retorno
-    if (gObj.dataInicio)
-      gObj.dataInicio = formatarData(new Date(gObj.dataInicio));
-    if (gObj.dataFim) gObj.dataFim = formatarData(new Date(gObj.dataFim));
-
-    res.json(gObj);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ erro: e.message });
-  }
-});
-
-// DELETAR GINCANA (DELETE /gincanas/:id) - Altera para inativa
-router.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const ref = db.collection("gincanas").doc(id);
-    const snap = await ref.get();
-
-    if (!snap.exists) {
-      return res.status(404).json({ erro: "Gincana não encontrada" });
-    }
 
     const payload = {
       status: "INATIVA",
@@ -158,43 +166,50 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// GET /gincanas — listar todas as gincanas
-router.get("/", async (_req, res) => {
-  try {
-    const snap = await db
-      .collection("gincanas")
-      .orderBy("createdAt", "desc")
-      .get();
+// GET /gincanas — todos logados
+router.get(
+  "/",
+  authorizeRoles("ADM", "PROFESSOR", "ALUNO"),
+  async (_req, res) => {
+    try {
+      const snap = await db
+        .collection("gincanas")
+        .orderBy("createdAt", "desc")
+        .get();
 
-    const lista = snap.docs.map((doc) => {
-      const g = Gincana.fromDoc(doc);
-      let gObj = g?.toObject ? g.toObject() : g;
+      const lista = snap.docs.map((doc) => {
+        const g = Gincana.fromDoc(doc);
+        let gObj = g?.toObject ? g.toObject() : g;
 
-      // Formata datas no retorno
-      if (gObj.dataInicio)
-        gObj.dataInicio = formatarData(new Date(gObj.dataInicio));
-      if (gObj.dataFim) gObj.dataFim = formatarData(new Date(gObj.dataFim));
+        if (gObj.dataInicio)
+          gObj.dataInicio = formatarData(new Date(gObj.dataInicio));
+        if (gObj.dataFim) gObj.dataFim = formatarData(new Date(gObj.dataFim));
 
-      return gObj;
-    });
+        return gObj;
+      });
 
-    res.json(lista);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ erro: e.message });
+      res.json(lista);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ erro: e.message });
+    }
   }
-});
+);
+
+// GET /gincanas/:id/ranking — todos logados
+router.get(
+  "/:id/ranking",
+  authorizeRoles("ADM", "PROFESSOR", "ALUNO"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const ranking = await calcularRankingGincana(id);
+      res.json({ gincanaId: id, ranking });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ erro: e.message });
+    }
+  }
+);
 
 module.exports = router;
-
-// GET /gincanas/:id/ranking — calcula e retorna ranking atual
-router.get("/:id/ranking", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const ranking = await calcularRankingGincana(id);
-    res.json({ gincanaId: id, ranking });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ erro: e.message });
-  }
-});

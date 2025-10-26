@@ -2,44 +2,51 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  criarEquipeController,
+  listarEquipesController,
+  obterEquipeController,
+  atualizarEquipeController,
+  deletarEquipeController,
+} = require("../controllers/equipeController");
+
+const {
   authMiddleware,
   authorizeRoles,
-} = require("../middlewares/authMiddleware"); // 👈 IMPORTANTE
+} = require("../middlewares/authMiddleware");
 const RoleEnum = require("../models/enums/RoleEnum");
-const controller = require("../controllers/atividadesController");
 
-// 🔐 Protege todas as rotas com login
+// exige login em todas as rotas de equipes
 router.use(authMiddleware);
 
+// criar equipe — ADM e PROFESSOR
 router.post(
   "/",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
-  controller.create
+  criarEquipeController
 );
+
+// listar/obter — qualquer logado
 router.get(
   "/",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
-  controller.list
+  listarEquipesController
 );
 router.get(
   "/:id",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
-  controller.getOne
+  obterEquipeController
 );
+
+// atualizar/deletar — ADM e PROFESSOR
 router.put(
   "/:id",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
-  controller.update
-);
-router.patch(
-  "/:id/encerrar",
-  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
-  controller.encerrarPontuando
+  atualizarEquipeController
 );
 router.delete(
   "/:id",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
-  controller.remove
+  deletarEquipeController
 );
 
 module.exports = router;

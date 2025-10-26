@@ -6,6 +6,8 @@ const num = (v, def = 0) => (typeof v === "number" ? v : def);
 
 /**
  * Encerra atividade e gera pontuações por classificação.
+ * Agora: cria documentos em "pontuacoes" e guarda apenas os IDs em `equipes.pontuacoesIds`.
+ *
  * @param {string} atividadeId
  * @param {object} params
  *  - classificacao: array de equipeIds em ordem [1o, 2o, 3o, ...]
@@ -24,7 +26,7 @@ async function encerrarAtividadeEGerarPontuacoes(
 
   const at = atSnap.data();
 
-  // pontos base por posição (1º, 2º, 3º); demais colocados = 0 (simples)
+  // pontos base por posição (1º, 2º, 3º); demais colocados = 0
   const basePos = [
     num(at.pontosPrimeiro, 0),
     num(at.pontosSegundo, 0),
@@ -36,16 +38,17 @@ async function encerrarAtividadeEGerarPontuacoes(
   const agora = new Date();
   const fim = fimISO ? new Date(fimISO) : new Date();
 
-  // 3) Para cada equipe na classificação, criar objeto Pontuacao e adicionar no array da equipe
+  // 3) Para cada equipe na classificação:
   for (let i = 0; i < classificacao.length; i++) {
     const equipeId = classificacao[i];
     const pontosObtidos = basePos[i] || 0;
     const b = num(bonus[equipeId], 0);
     const p = num(penalidade[equipeId], 0);
 
-    // cria objeto (id gerado só para referência interna da pontuação)
+    // (a) cria doc real em "pontuacoes"
+    const pontRef = db.collection("pontuacoes").doc();
     const pontoObj = new Pontuacao(
-      db.collection("_").doc().id, // id fake (não é doc; vamos enfiar no array)
+      pontRef.id,
       equipeId,
       atividadeId,
       pontosObtidos,
@@ -53,10 +56,15 @@ async function encerrarAtividadeEGerarPontuacoes(
       p
     ).toObject();
 
-    const equipeRef = db.collection("equipes").doc(equipeId);
+    batch.set(pontRef, {
+      ...pontoObj,
+      criadoEm: agora, // garante timestamp consistente
+    });
 
+    // (b) atualiza equipe: guarda apenas o ID recém criado
+    const equipeRef = db.collection("equipes").doc(equipeId);
     batch.update(equipeRef, {
-      pontuacoes: admin.firestore.FieldValue.arrayUnion(pontoObj),
+      pontuacoesIds: admin.firestore.FieldValue.arrayUnion(pontRef.id),
       atualizadoEm: agora,
     });
   }

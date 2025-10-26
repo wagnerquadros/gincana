@@ -1,12 +1,20 @@
 class Equipe {
-  constructor(id, gincana, nome, ativo, pontuacoes = [], criadoEm = new Date(), atualizadoEm = new Date()) {
+  id;
+  gincanaId;
+  nome;
+  ativo;
+  pontuacoesIds;
+  criadoEm;
+  atualizadoEm;
+
+  constructor(id, gincanaId, nome, ativo = true, pontuacoesIds = []) {
     this.id = id;
     this.gincana = gincana; 
     this.nome = nome;
-    this.ativo = ativo;
-    this.pontuacoes = pontuacoes;
-    this.criadoEm = criadoEm;
-    this.atualizadoEm = atualizadoEm;
+    this.ativo = !!ativo;
+    this.pontuacoesIds = Array.isArray(pontuacoesIds) ? pontuacoesIds : [];
+    this.criadoEm = new Date();
+    this.atualizadoEm = new Date();
   }
 
   toObject() {
@@ -15,7 +23,7 @@ class Equipe {
       gincana: typeof this.gincana === "object" ? this.gincana.id : this.gincana,
       nome: this.nome,
       ativo: this.ativo,
-      pontuacoes: this.pontuacoes.map((p) => (p.id ? p.id : p)),
+      pontuacoesIds: this.pontuacoesIds,
       criadoEm: this.criadoEm,
       atualizadoEm: this.atualizadoEm,
     };
@@ -26,12 +34,10 @@ class Equipe {
     const d = doc.data();
     return new Equipe(
       doc.id,
-      d.gincana,
+      d.gincanaId,
       d.nome,
       d.ativo,
-      d.pontuacoes || [],
-      d.criadoEm?.toDate ? d.criadoEm.toDate() : d.criadoEm,
-      d.atualizadoEm?.toDate ? d.atualizadoEm.toDate() : d.atualizadoEm
+      d.pontuacoesIds || []
     );
   }
 }

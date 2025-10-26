@@ -1,16 +1,15 @@
+// src/controllers/equipeController.js
 const {
   criarEquipe,
   listarEquipes,
   obterEquipePorId,
   atualizarEquipe,
-  deletarEquipe
-} = require("../services/equipeService.js");
+  deletarEquipe,
+} = require("../services/equipeService");
 
 const criarEquipeController = async (req, res) => {
   try {
-    console.log("REQ BODY:", req.body);
     const equipe = await criarEquipe(req.body);
-    console.log("EQUIPE CRIADA:", equipe);
     res.status(201).json(equipe);
   } catch (err) {
     console.error("ERRO CRIAR EQUIPE:", err);
@@ -18,7 +17,7 @@ const criarEquipeController = async (req, res) => {
   }
 };
 
-const listarEquipesController = async (req, res) => {
+const listarEquipesController = async (_req, res) => {
   try {
     const equipes = await listarEquipes();
     res.json(equipes);
@@ -59,5 +58,5 @@ module.exports = {
   listarEquipesController,
   obterEquipeController,
   atualizarEquipeController,
-  deletarEquipeController
+  deletarEquipeController,
 };
