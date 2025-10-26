@@ -5,17 +5,12 @@ import "../styles/Navbar.css";
 
 export default function NavbarProfessor() {
   const [menuAberto, setMenuAberto] = useState(false);
-  const { usuario, sair } = useAutenticacao(); // se seu hook usa "logout", troque por logout()
+  const { usuario, sair } = useAutenticacao();
 
-  // papel do usuário
   const role = (usuario?.role || "").toUpperCase();
-  const isADM = role === "ADM";
 
-  // helper para className do NavLink (garante aplicar "active")
   const linkClass = ({ isActive }) =>
     isActive ? "nav-link active" : "nav-link";
-  const linkClassAdmin = ({ isActive }) =>
-    isActive ? "nav-link nav-link-admin active" : "nav-link nav-link-admin";
 
   return (
     <header className="nav-wrap">
@@ -43,18 +38,14 @@ export default function NavbarProfessor() {
 
         {/* CENTRO — abas */}
         <nav className="nav-center">
-          {/* SOMENTE ADM: "Gerenciamento" na frente */}
-          {isADM && (
-            <NavLink to="/prof/gerenciamento" className={linkClassAdmin}>
-              <span>Gerenciamento</span>
-            </NavLink>
-          )}
-
           <NavLink to="/prof/dashboard" className={linkClass}>
             <span>Dashboard</span>
           </NavLink>
           <NavLink to="/prof/gincana" className={linkClass}>
             <span>Gincana</span>
+          </NavLink>
+          <NavLink to="/prof/usuarios" className={linkClass}>
+            <span>Usuários</span>
           </NavLink>
           <NavLink to="/prof/equipes" className={linkClass}>
             <span>Equipes</span>
@@ -62,12 +53,9 @@ export default function NavbarProfessor() {
           <NavLink to="/prof/atividades" className={linkClass}>
             <span>Atividades</span>
           </NavLink>
-          <NavLink to="/prof/ranking" className={linkClass}>
-            <span>Ranking</span>
-          </NavLink>
         </nav>
 
-        {/* DIREITA — role + sair + burger (mobile) */}
+        {/* DIREITA — role + sair + burger */}
         <div className="user-side">
           <div className="role-badge" title="Papel do usuário">
             <span className="role-dot" />
@@ -80,7 +68,6 @@ export default function NavbarProfessor() {
             Sair
           </button>
 
-          {/* burger só aparece no mobile */}
           <button
             className="btn-burger"
             aria-label="Abrir menu"
@@ -96,17 +83,6 @@ export default function NavbarProfessor() {
 
       {/* MENU MOBILE */}
       <div className={`mobile-menu ${menuAberto ? "show" : ""}`}>
-        {/* SOMENTE ADM: "Gerenciamento" aparece primeiro */}
-        {isADM && (
-          <NavLink
-            to="/prof/gerenciamento"
-            className={linkClassAdmin}
-            onClick={() => setMenuAberto(false)}
-          >
-            Gerenciamento
-          </NavLink>
-        )}
-
         <NavLink
           to="/prof/dashboard"
           className={linkClass}
@@ -122,6 +98,13 @@ export default function NavbarProfessor() {
           Gincana
         </NavLink>
         <NavLink
+          to="/prof/usuarios"
+          className={linkClass}
+          onClick={() => setMenuAberto(false)}
+        >
+          Usuários
+        </NavLink>
+        <NavLink
           to="/prof/equipes"
           className={linkClass}
           onClick={() => setMenuAberto(false)}
@@ -135,22 +118,6 @@ export default function NavbarProfessor() {
         >
           Atividades
         </NavLink>
-        <NavLink
-          to="/prof/ranking"
-          className={linkClass}
-          onClick={() => setMenuAberto(false)}
-        >
-          Ranking
-        </NavLink>
-
-        {/* Dica: se quiser o botão SAIR funcional no menu mobile, descomente abaixo
-        <button
-          style={{ marginTop: 6, padding: "8px 14px", borderRadius: 10, border: "1px solid var(--nav-line)", background: "#f8fafc", fontWeight: 800 }}
-          onClick={() => { setMenuAberto(false); sair?.(); }}
-        >
-          Sair
-        </button>
-        */}
       </div>
     </header>
   );

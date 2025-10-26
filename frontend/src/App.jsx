@@ -1,31 +1,31 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProvedorAutenticacao } from "./auth/useAutenticacao";
+
 import Login from "./pages/Login";
 import CadastroAluno from "./pages/CadastroAluno";
 
 import ProfessorLayout from "./layouts/ProfessorLayout";
 import RotaPrivada from "./auth/RotaPrivada";
-import RotaSomenteADM from "./auth/RotaSomenteADM";
+import RotaSomenteStaff from "./auth/RotaSomenteStaff";
 
-import DashboardProf from "./pages/prof/DashboardProf";
+import DashboardProf from "./pages/prof/DashboardProf.jsx";
 import GincanaProf from "./pages/prof/GincanaProf";
 import EquipesProf from "./pages/prof/EquipesProf";
 import AtividadesProf from "./pages/prof/AtividadesProf";
-import RankingProf from "./pages/prof/RankingProf";
-import SetupAdmin from "./pages/prof/SetupAdmin";
-import GerenciamentoAdmin from "./pages/prof/GerenciamentoAdmin";
+import UsuariosAdmin from "./pages/prof/UsuariosAdmin";
+
 
 export default function App() {
   return (
     <ProvedorAutenticacao>
       <BrowserRouter>
         <Routes>
-          {/* público */}
+          {/* Público */}
           <Route path="/" element={<Login />} />
           <Route path="/cadastro-aluno" element={<CadastroAluno />} />
 
-          {/* painel do professor/adm */}
+          {/* Painel do professor/adm */}
           <Route
             path="/prof"
             element={
@@ -34,35 +34,31 @@ export default function App() {
               </RotaPrivada>
             }
           >
-            {/* Só ADM */}
+            {/* Acesso para ADM e PROFESSOR */}
             <Route
-              path="gerenciamento"
+              path="usuarios"
               element={
-                <RotaSomenteADM>
-                  <GerenciamentoAdmin />
-                </RotaSomenteADM>
-              }
-            />
-            <Route
-              path="setup"
-              element={
-                <RotaSomenteADM>
-                  <SetupAdmin />
-                </RotaSomenteADM>
+                <RotaSomenteStaff>
+                  <UsuariosAdmin />
+                </RotaSomenteStaff>
               }
             />
 
-            {/* Comuns */}
+            {/* Rotas comuns */}
             <Route path="dashboard" element={<DashboardProf />} />
             <Route path="gincana" element={<GincanaProf />} />
             <Route path="equipes" element={<EquipesProf />} />
             <Route path="atividades" element={<AtividadesProf />} />
-            <Route path="ranking" element={<RankingProf />} />
+
+            {/* Rota padrão ao entrar em /prof */}
             <Route index element={<DashboardProf />} />
+
+            {/* Fallback interno de /prof */}
+            <Route path="*" element={<Navigate to="/prof/dashboard" replace />} />
           </Route>
 
-          {/* fallback */}
-          <Route path="*" element={<Login />} />
+          {/* Fallback global */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ProvedorAutenticacao>

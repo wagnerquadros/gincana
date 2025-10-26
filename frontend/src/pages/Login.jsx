@@ -28,8 +28,7 @@ export default function Login() {
       if (temAtiva) {
         navigate("/prof/dashboard");
       } else {
-        // se não houver, tenta /prof/setup (apenas ADM verá; professor será redirecionado pelo guard)
-        navigate("/prof/setup");
+        navigate("/prof/gincana");
       }
     } catch (err) {
       console.error(err);

@@ -12,10 +12,10 @@ const ctrl = require("../controllers/usuariosController");
 router.use(authMiddleware);
 
 // ADM cria usuário (qualquer role)
-router.post("/", authorizeRoles(RoleEnum.ADM), ctrl.create);
+router.post("/", authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR), ctrl.create);
 
 // ADM lista todos
-router.get("/", authorizeRoles(RoleEnum.ADM), ctrl.list);
+router.get("/", authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR), ctrl.list);
 
 // ADM ou o próprio usuário
 router.get("/:id", ctrl.getOne);
@@ -27,6 +27,6 @@ router.put("/:id", ctrl.update);
 router.patch("/:id/senha", ctrl.changePassword);
 
 // Inativar usuário: somente ADM
-router.delete("/:id", authorizeRoles(RoleEnum.ADM), ctrl.remove);
+router.delete("/:id", authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR), ctrl.remove);
 
 module.exports = router;

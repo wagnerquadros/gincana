@@ -88,7 +88,11 @@ async function getOne(req, res) {
   try {
     const { id } = req.params;
 
-    if (req.user.role !== RoleEnum.ADM && req.user.id !== id) {
+    if (
+      req.user.role !== RoleEnum.ADM &&
+      req.user.role !== RoleEnum.PROFESSOR &&
+      req.user.id !== id
+    ) {
       return res.status(403).json({ error: "Acesso negado" });
     }
 
