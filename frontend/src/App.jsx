@@ -1,35 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.jsx
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProvedorAutenticacao } from "./auth/useAutenticacao";
+import Login from "./pages/Login";
+import CadastroAluno from "./pages/CadastroAluno";
 
-function App() {
-  const [count, setCount] = useState(0)
+import ProfessorLayout from "./layouts/ProfessorLayout";
+import RotaPrivada from "./auth/RotaPrivada";
+import RotaSomenteADM from "./auth/RotaSomenteADM";
 
+import DashboardProf from "./pages/prof/DashboardProf";
+import GincanaProf from "./pages/prof/GincanaProf";
+import EquipesProf from "./pages/prof/EquipesProf";
+import AtividadesProf from "./pages/prof/AtividadesProf";
+import RankingProf from "./pages/prof/RankingProf";
+import SetupAdmin from "./pages/prof/SetupAdmin";
+import GerenciamentoAdmin from "./pages/prof/GerenciamentoAdmin";
+
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <ProvedorAutenticacao>
+      <BrowserRouter>
+        <Routes>
+          {/* público */}
+          <Route path="/" element={<Login />} />
+          <Route path="/cadastro-aluno" element={<CadastroAluno />} />
 
-export default App
+          {/* painel do professor/adm */}
+          <Route
+            path="/prof"
+            element={
+              <RotaPrivada>
+                <ProfessorLayout />
+              </RotaPrivada>
+            }
+          >
+            {/* Só ADM */}
+            <Route
+              path="gerenciamento"
+              element={
+                <RotaSomenteADM>
+                  <GerenciamentoAdmin />
+                </RotaSomenteADM>
+              }
+            />
+            <Route
+              path="setup"
+              element={
+                <RotaSomenteADM>
+                  <SetupAdmin />
+                </RotaSomenteADM>
+              }
+            />
+
+            {/* Comuns */}
+            <Route path="dashboard" element={<DashboardProf />} />
+            <Route path="gincana" element={<GincanaProf />} />
+            <Route path="equipes" element={<EquipesProf />} />
+            <Route path="atividades" element={<AtividadesProf />} />
+            <Route path="ranking" element={<RankingProf />} />
+            <Route index element={<DashboardProf />} />
+          </Route>
+
+          {/* fallback */}
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </BrowserRouter>
+    </ProvedorAutenticacao>
+  );
+}

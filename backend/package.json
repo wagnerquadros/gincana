@@ -5,19 +5,27 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "test": "jest --runInBand --detectOpenHandles",
+    "test:e2e": "jest tests/e2e",
     "dev": "nodemon src/server.js",
-    "hashpw": "node scripts/hashPassword.js"
+    "hashpw": "node scripts/hashPassword.js",
+    "seed:adm": "node src/scripts/seedAdm.js"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.1.0",
-    "dotenv": "^16.0.0",
-    "express": "^4.18.2",
-    "firebase-admin": "^11.10.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "firebase": "^12.4.0",
+    "firebase-admin": "^11.11.1",
     "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "chalk": "^4.1.2",
+    "jest": "^30.2.0",
+    "nodemon": "^2.0.22",
+    "supertest": "^7.1.4"
   }
 }
