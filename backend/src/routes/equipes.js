@@ -7,6 +7,7 @@ const {
   obterEquipeController,
   atualizarEquipeController,
   deletarEquipeController,
+  listarEquipesPorGincanaController,
 } = require("../controllers/equipeController");
 
 const {
@@ -47,6 +48,11 @@ router.delete(
   "/:id",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
   deletarEquipeController
+);
+router.get(
+  "/gincana/:gincanaId",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  listarEquipesPorGincanaController
 );
 
 module.exports = router;

@@ -5,6 +5,7 @@ const {
   obterEquipePorId,
   atualizarEquipe,
   deletarEquipe,
+  listarEquipesPorGincana,
 } = require("../services/equipeService");
 
 const criarEquipeController = async (req, res) => {
@@ -53,10 +54,27 @@ const deletarEquipeController = async (req, res) => {
   }
 };
 
+const listarEquipesPorGincanaController = async (req, res) => {
+  try {
+    const { gincanaId } = req.params;
+    const { ativo } = req.query;
+
+    const out = await listarEquipesPorGincana({
+      gincanaId,
+      ativo: typeof ativo === "undefined" ? undefined : ativo === "true",
+    });
+
+    res.json(out);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 module.exports = {
   criarEquipeController,
   listarEquipesController,
   obterEquipeController,
   atualizarEquipeController,
   deletarEquipeController,
+  listarEquipesPorGincanaController,
 };

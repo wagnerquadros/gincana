@@ -92,10 +92,39 @@ async function deletarEquipe(id) {
   return { ok: true, message: "Equipe deletada com sucesso", id };
 }
 
+
+async function listarEquipesPorGincana({ gincanaId, ativo } = {}) {
+  if (!db) throw new Error("Firebase não inicializado");
+  if (!isStr(gincanaId)) throw new Error("gincanaId é obrigatório");
+
+  // 🔹 Somente 1 where no Firestore (evita índice composto)
+  const qs = await db
+    .collection(COLL)
+    .where("gincanaId", "==", gincanaId.trim())
+    .get();
+
+  // Converte pra objeto plano
+  let equipes = qs.docs.map((d) => {
+    const e = Equipe.fromDoc(d);
+    return e?.toObject ? e.toObject() : e;
+  });
+
+  // 🔹 Filtro opcional em memória (não exige índice)
+  if (typeof ativo === "boolean") {
+    equipes = equipes.filter((e) => !!e?.ativo === !!ativo);
+  }
+
+  // (Opcional) ordenar por nome, se quiser
+  equipes.sort((a, b) => (a?.nome || "").localeCompare(b?.nome || "", "pt-BR"));
+
+  return equipes;
+}
+
 module.exports = {
   criarEquipe,
   listarEquipes,
   obterEquipePorId,
   atualizarEquipe,
   deletarEquipe,
+  listarEquipesPorGincana,
 };
