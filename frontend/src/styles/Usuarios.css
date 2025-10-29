@@ -12,7 +12,7 @@
 .lista-titulo {
   margin: 4px 0 10px 0;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 600;
   color: #0f172a;
 }
 
@@ -30,7 +30,7 @@
 
 .grupo-titulo {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   color: #0f172a;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .card-nome {
-  font-weight: 700;
+  font-weight: 600;
   color: #111827;
 }
 
@@ -152,7 +152,7 @@
   border: none;
   border-radius: 10px;
   padding: 10px 14px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   transition: transform 0.04s, background 0.15s;
 }

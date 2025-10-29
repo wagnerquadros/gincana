@@ -3,9 +3,11 @@
   --nav-line: #e5e7eb;
   --text: #0f172a;
   --muted: #6b7280;
-  --blue: #2563eb; /* azul */
+  --blue: #2563eb;
+  /* azul */
   --blue-600: #1d4ed8;
-  --amber: #f59e0b; /* laranja/âmbar */
+  --amber: #f59e0b;
+  /* laranja/âmbar */
   --amber-600: #d97706;
   --shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
 }
@@ -37,6 +39,7 @@
   align-items: center;
   gap: 10px;
 }
+
 .brand-ico {
   width: 32px;
   height: 32px;
@@ -47,8 +50,9 @@
   background: var(--amber);
   box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
 }
+
 .brand-text {
-  font-weight: 800;
+  font-weight: 600;
   font-size: 16px;
   letter-spacing: 0.2px;
 }
@@ -60,6 +64,7 @@
   align-items: center;
   gap: 8px;
 }
+
 .nav-link {
   padding: 8px 14px;
   border-radius: 10px;
@@ -70,6 +75,7 @@
   border: 1px solid transparent;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s, border 0.15s;
 }
+
 .nav-link:hover {
   background: #f3f4f6;
 }
@@ -100,6 +106,7 @@
   font-weight: 800;
   font-size: 13px;
 }
+
 .role-dot {
   width: 8px;
   height: 8px;
@@ -107,6 +114,7 @@
   background: var(--blue);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
+
 .role-text {
   color: #1f2937;
 }
@@ -115,16 +123,18 @@
   border: 1px solid var(--nav-line);
   background: #ffffff;
   color: #111827;
-  font-weight: 800;
+  font-weight: 600;
   font-size: 13px;
   padding: 6px 12px;
   border-radius: 10px;
   cursor: pointer;
   transition: background 0.15s, border 0.15s, transform 0.04s;
 }
+
 .btn-sair:hover {
   background: #f9fafb;
 }
+
 .btn-sair:active {
   transform: translateY(1px);
 }
@@ -142,6 +152,7 @@
   gap: 4px;
   cursor: pointer;
 }
+
 .btn-burger span {
   width: 18px;
   height: 2px;
@@ -157,11 +168,13 @@
   background: #ffffff;
   padding: 8px 12px;
 }
+
 .mobile-menu.show {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
+
 .mobile-menu .nav-link {
   width: 100%;
 }
@@ -169,20 +182,30 @@
 /* RESPONSIVO */
 @media (max-width: 900px) {
   .nav-inner {
-    grid-template-columns: auto auto auto; /* mantém 3 áreas */
+    grid-template-columns: auto auto auto;
+    /* mantém 3 áreas */
   }
+
   .nav-center {
     display: none;
-  } /* esconde abas do centro */
+  }
+
+  /* esconde abas do centro */
   .btn-burger {
     display: flex;
-  } /* mostra burger */
+  }
+
+  /* mostra burger */
   .role-badge {
     display: none;
-  } /* opcional: esconde role no mobile */
+  }
+
+  /* opcional: esconde role no mobile */
   .btn-sair {
     display: none;
-  } /* opcional: esconde sair no topo (poderia ir no menu mobile) */
+  }
+
+  /* opcional: esconde sair no topo (poderia ir no menu mobile) */
   /* Se quiser "Sair" dentro do menu mobile: */
   .mobile-menu.show::after {
     content: "Sair";
@@ -193,6 +216,6 @@
     background: #f8fafc;
     border: 1px solid var(--nav-line);
     color: #111827;
-    font-weight: 800;
+    font-weight: 600;
   }
 }
