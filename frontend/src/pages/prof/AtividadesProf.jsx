@@ -5,21 +5,25 @@ import { obterGincanaAtiva } from "../../api/gincana";
 import { atualizarAtividade, criarAtividade } from "../../api/atividades";
 import ModalAtividade from "../../components/ModalAtividade";
 import ModalEncerrarAtividade from "../../components/ModalEncerrarAtividade";
+import ModalPontuacoesAtividade from "../../components/ModalPontuacoesAtividade";
+
 
 export default function AtividadesProf() {
   const [gincanaAtiva, setGincanaAtiva] = useState(null);
   const [atividades, setAtividades] = useState([]);
   const [selecionada, setSelecionada] = useState(null);
-
+  const [mostrarPontuacoes, setMostrarPontuacoes] = useState(false);
   const [modalVisivel, setModalVisivel] = useState(false);
   const [mostrarEncerrar, setMostrarEncerrar] = useState(false);
+  const [modalEditarVisivel, setModalEditarVisivel] = useState(false);
+  const [atividadeEmEdicao, setAtividadeEmEdicao] = useState(null);
 
   const [filtro, setFiltro] = useState("TODAS"); // TODAS | AGENDADA | EM ANDAMENTO | ENCERRADA
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
 
   const [processando, setProcessando] = useState(false);
-  // Se não quiser mais a mensagem OK, pode remover as duas linhas abaixo
+
   const [ok, setOk] = useState("");
   console.log(ok);
 
@@ -45,6 +49,13 @@ export default function AtividadesProf() {
   function fecharModalEncerrar() {
     setMostrarEncerrar(false);
   }
+  function abrirModalPontuacoes() {
+    if (!selecionada) return;
+    setMostrarPontuacoes(true);
+  }
+  function fecharModalPontuacoes() {
+    setMostrarPontuacoes(false);
+  }
 
   // abrir modal criar
   function abrirModalCriar() {
@@ -63,10 +74,47 @@ export default function AtividadesProf() {
     setModalVisivel(false);
   }
 
+
+  // === EDIÇÃO ===
+  function abrirModalEditar(atividade) {
+    if (!atividade) return;
+    setAtividadeEmEdicao(atividade);
+    setModalEditarVisivel(true);
+  }
+
+  function fecharModalEditar() {
+    setModalEditarVisivel(false);
+    setAtividadeEmEdicao(null);
+  }
+
+  async function salvarEdicaoAtividade(payload) {
+    if (!atividadeEmEdicao?.id) return;
+    // Atualiza somente os campos editáveis; backend ignora gincanaId se não permitir troca
+    const atualizada = await atualizarAtividade(atividadeEmEdicao.id, payload);
+    // Atualiza lista em memória
+    setAtividades((prev) =>
+      prev.map((a) => (a.id === atualizada.id ? { ...a, ...atualizada } : a))
+    );
+    // Atualiza painel de detalhes se for a selecionada
+    setSelecionada((prev) =>
+      prev && prev.id === atualizada.id ? { ...prev, ...atualizada } : prev
+    );
+    fecharModalEditar();
+  }
+
+
   function fmtData(v) {
     if (!v) return "-";
     const d = new Date(v);
     return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString();
+  }
+
+  function safeHtml(html = "") {
+    // remove scripts
+    let s = String(html).replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
+    // remove atributos on*=
+    s = s.replace(/\son\w+="[^"]*"/gi, "").replace(/\son\w+='[^']*'/gi, "");
+    return s;
   }
 
   const atividadesFiltradas = useMemo(() => {
@@ -228,7 +276,10 @@ export default function AtividadesProf() {
                       <strong className="atividade-titulo">{a.titulo}</strong>
                       <span className="atividade-pontos">{a.pontosPrimeiro} pts</span>
                     </div>
-                    <p className="atividade-descricao">{a.descricao}</p>
+                    <p
+                      className="atividade-descricao"
+                      dangerouslySetInnerHTML={{ __html: safeHtml(a.descricao || "") }}
+                    />
                     <div className="atividade-infos">
                       <span>{a.tipo}</span> • <span>{fmtData(a.inicio)}</span>
                     </div>
@@ -253,7 +304,10 @@ export default function AtividadesProf() {
 
                 <div className="atividade-campo">
                   <span className="campo-label">Descrição</span>
-                  <p className="campo-valor">{selecionada.descricao}</p>
+                  <div
+                    className="campo-valor"
+                    dangerouslySetInnerHTML={{ __html: safeHtml(selecionada.descricao || "") }}
+                  />
                 </div>
 
                 <div className="atividade-campo">
@@ -283,13 +337,13 @@ export default function AtividadesProf() {
                   </div>
                 </div>
 
+                {/* --- CRITÉRIOS (render rico) --- */}
                 <div className="atividade-campo">
                   <span className="campo-label">Critérios</span>
-                  <p className="campo-valor">
-                    {Array.isArray(selecionada.criterios) && selecionada.criterios.length
-                      ? selecionada.criterios.join(", ")
-                      : "—"}
-                  </p>
+                  <div
+                    className="campo-valor"
+                    dangerouslySetInnerHTML={{ __html: safeHtml(selecionada.descricao || "") }}
+                  />
                 </div>
 
                 <div className="atividade-campo">
@@ -301,6 +355,7 @@ export default function AtividadesProf() {
                   <span className="campo-label">Atualizado em</span>
                   <p className="campo-valor">{fmtData(selecionada.atualizadoEm)}</p>
                 </div>
+
 
                 <div className="btn-row">
                   {String(selecionada.statusAtividade).toUpperCase() === "AGENDADA" && (
@@ -325,13 +380,22 @@ export default function AtividadesProf() {
                   )}
 
                   {String(selecionada.statusAtividade).toUpperCase() === "CONCLUIDA" && (
-                    <button className="btn btn-secondary" title="Ver pontuação/ranking">
+                    <button className="btn btn-secondary" title="Ver pontuação/ranking" onClick={abrirModalPontuacoes}>
                       🏆 Ver pontuação
                     </button>
                   )}
-                  <button className="btn btn-primary">✏️ Editar</button>
 
+                  {/* Botão editar só aparece se NÃO estiver concluída */}
+                  {String(selecionada.statusAtividade).toUpperCase() !== "CONCLUIDA" && (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => abrirModalEditar(selecionada)}
+                    >
+                      ✏️ Editar
+                    </button>
+                  )}
                 </div>
+
               </>
             ) : (
               <div className="eq-vazio">
@@ -350,6 +414,16 @@ export default function AtividadesProf() {
         gincanaAtiva={gincanaAtiva}
       />
 
+      <ModalAtividade
+        visivel={modalEditarVisivel}
+        onFechar={fecharModalEditar}
+        onSalvar={salvarEdicaoAtividade}
+        gincanaAtiva={gincanaAtiva}
+        modo="editar"
+        dadosIniciais={atividadeEmEdicao}
+      />
+
+
       {mostrarEncerrar && (
         <ModalEncerrarAtividade
           aberta={mostrarEncerrar}
@@ -360,6 +434,14 @@ export default function AtividadesProf() {
             if (gincanaAtiva?.id) carregarAtividades(gincanaAtiva.id);
             setSelecionada(null);
           }}
+        />
+      )}
+
+      {mostrarPontuacoes && (
+        <ModalPontuacoesAtividade
+          aberta={mostrarPontuacoes}
+          onClose={fecharModalPontuacoes}
+          atividade={selecionada}
         />
       )}
     </main>

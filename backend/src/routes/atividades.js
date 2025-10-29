@@ -7,6 +7,7 @@ const {
 } = require("../middlewares/authMiddleware"); // 👈 IMPORTANTE
 const RoleEnum = require("../models/enums/RoleEnum");
 const controller = require("../controllers/atividadesController");
+const { rankingPorAtividadeController } = require("../controllers/pontuacaoController");
 
 // 🔐 Protege todas as rotas com login
 router.use(authMiddleware);
@@ -46,5 +47,11 @@ router.get(
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
   controller.listByGincana
 );
+router.get(
+  "/:id/pontuacoes",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  rankingPorAtividadeController
+);
+
 
 module.exports = router;

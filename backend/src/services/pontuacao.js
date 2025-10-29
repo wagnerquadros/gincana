@@ -87,4 +87,107 @@ async function encerrarAtividadeEGerarPontuacoes(
   };
 }
 
-module.exports = { encerrarAtividadeEGerarPontuacoes };
+const COLL = "pontuacoes";
+const isStr = (v) => typeof v === "string" && v.trim().length > 0;
+
+// 🔹 Lista pontuações de uma atividade (apenas 1 where → não exige índice composto)
+async function listarPontuacoesPorAtividade(atividadeId) {
+  if (!db) throw new Error("Firebase não inicializado");
+  if (!isStr(atividadeId)) throw new Error("atividadeId é obrigatório");
+
+  const qs = await db
+    .collection(COLL)
+    .where("atividadeId", "==", atividadeId.trim())
+    .get();
+
+  return qs.docs.map((d) => {
+    const p = Pontuacao.fromDoc(d);
+    return p?.toObject ? p.toObject() : p;
+  });
+}
+
+// 🔹 Monta ranking (competition ranking: 1,2,2,4)
+async function rankingDaAtividade(atividadeId, { incluirEquipe = true } = {}) {
+  const itens = await listarPontuacoesPorAtividade(atividadeId);
+
+  // total = pontosObtidos + bonus - penalidade
+  const ordenados = itens
+    .map((x) => ({
+      ...x,
+      total:
+        Number(x.pontosObtidos || 0) +
+        Number(x.bonus || 0) -
+        Number(x.penalidade || 0),
+    }))
+    .sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      // desempates opcionais
+      if ((b.bonus || 0) !== (a.bonus || 0)) return (b.bonus || 0) - (a.bonus || 0);
+      if ((a.penalidade || 0) !== (b.penalidade || 0))
+        return (a.penalidade || 0) - (b.penalidade || 0);
+      return new Date(a.criadoEm || 0) - new Date(b.criadoEm || 0);
+    });
+
+  // gera colocação
+  let lastTotal = null;
+  let lastRank = 0;
+  for (let i = 0; i < ordenados.length; i++) {
+    const cur = ordenados[i];
+    if (lastTotal === null || cur.total !== lastTotal) {
+      lastRank = i + 1;
+      lastTotal = cur.total;
+    }
+    cur.colocacao = lastRank;
+  }
+
+  // enriquecer com nome da equipe (opcional)
+  if (incluirEquipe && ordenados.length > 0) {
+    const uniqueEquipeIds = [...new Set(ordenados.map((x) => x.equipeId).filter(isStr))];
+    const equipes = {};
+    await Promise.all(
+      uniqueEquipeIds.map(async (id) => {
+        const doc = await db.collection("equipes").doc(id).get();
+        if (doc.exists) {
+          const d = doc.data();
+          equipes[id] = { id: doc.id, nome: d?.nome || null };
+        } else {
+          equipes[id] = { id, nome: null };
+        }
+      })
+    );
+    for (const item of ordenados) {
+      item.equipe = equipes[item.equipeId] || null;
+    }
+  }
+
+  return ordenados.map(
+    ({
+      id,
+      atividadeId,
+      equipeId,
+      equipe,
+      pontosObtidos,
+      bonus,
+      penalidade,
+      total,
+      colocacao,
+    }) => ({
+      id,
+      atividadeId,
+      equipeId,
+      equipe,
+      pontosObtidos,
+      bonus,
+      penalidade,
+      total,
+      colocacao,
+    })
+  );
+}
+
+
+module.exports = {
+  encerrarAtividadeEGerarPontuacoes,
+  listarPontuacoesPorAtividade,
+  rankingDaAtividade,
+};

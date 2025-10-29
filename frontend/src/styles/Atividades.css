@@ -184,7 +184,7 @@
     /* padrão 600 que você escolheu */
     color: #334155;
     /* cinza mais escuro */
-    font-size: 13px;
+    font-size: 18px;
     margin-bottom: 2px;
 }
 
@@ -199,7 +199,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    margin: 12px 0;
+    margin: 12px 0 30px 0;
+
     padding: 12px;
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -240,4 +241,130 @@
 .btn-success:hover {
     background: #15803d;
     border-color: #15803d;
+}
+
+/* ===== EditorTexto (RTE) ===== */
+.rte-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rte-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px;
+    background: #fafafa;
+}
+
+.rte-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.rte-btn:hover {
+    box-shadow: 0 2px 8px rgba(2, 6, 23, .08);
+}
+
+.rte-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--line);
+    margin: 0 4px;
+}
+
+.rte-area {
+    overflow: auto;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    line-height: 1.4;
+}
+
+.rte-area:empty:before {
+    content: attr(data-placeholder);
+    color: #94a3b8;
+}
+
+.atividade-descricao,
+.campo-valor {
+    white-space: normal;
+    line-height: 1.45;
+}
+
+.atividade-descricao p,
+.campo-valor p {
+    margin: 6px 0;
+}
+
+.atividade-descricao ul,
+.atividade-descricao ol,
+.campo-valor ul,
+.campo-valor ol {
+    margin: 6px 0 6px 20px;
+    padding-left: 18px;
+}
+
+.atividade-descricao li,
+.campo-valor li {
+    margin: 2px 0;
+}
+
+/* Opcional: garanta que links no HTML fiquem visíveis */
+.atividade-descricao a,
+.campo-valor a {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ====== ESTILO DOS DETALHES ====== */
+.atividade-campo {
+    margin-bottom: 14px;
+}
+
+.campo-label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    /* cinza escuro */
+    margin-bottom: 4px;
+}
+
+.campo-valor {
+    color: #9ca3af;
+    /* cinza claro */
+    line-height: 1.5;
+    white-space: normal;
+}
+
+/* mantém formatação do rich text */
+.campo-valor p,
+.campo-valor ul,
+.campo-valor ol {
+    margin: 6px 0;
+}
+
+.campo-valor li {
+    margin: 3px 0;
+}
+
+/* Negritos dentro de campo-valor = cinza escuro */
+.campo-valor b,
+.campo-valor strong {
+    color: #374151;
+    font-weight: 600;
+}
+
+/* Links visíveis */
+.campo-valor a {
+    color: #4b5563;
+    text-decoration: underline;
 }

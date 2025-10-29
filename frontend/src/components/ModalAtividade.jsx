@@ -1,34 +1,42 @@
-
 import { useEffect, useMemo, useState } from "react";
 import "../styles/ModalAtividade.css";
-
+import EditorTexto from "./EditorTexto";
 
 function toISODateAtMidnightTZ(dateStr, tz = "-03:00") {
     if (!dateStr) return "";
     return `${dateStr}T00:00:00${tz}`;
 }
+function toDateInput(d) {
+    if (!d) return "";
+    const dt = new Date(d);
+    return isNaN(dt) ? "" : dt.toISOString().slice(0, 10);
+}
+function htmlToPlainText(html = "") {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
+}
 
 export default function ModalAtividade({
     visivel,
     onFechar,
-    onSalvar,          // (payload) => Promise<void> | void
-    gincanaAtiva,      // { id, nome, ... }
-    inicial = null,    // dados da atividade para edição (opcional)
-    modo = "criar",    // "criar" | "editar"
+    onSalvar,
+    gincanaAtiva,
+    modo = "criar",            // "criar" | "editar"
+    dadosIniciais = null,      // objeto da atividade no modo editar
 }) {
     const [titulo, setTitulo] = useState("");
-    const [descricao, setDescricao] = useState("");
-    const [tipo, setTipo] = useState("QUIZ");
-    const [inicio, setInicio] = useState(""); // date input (YYYY-MM-DD)
-    const [fim, setFim] = useState("");       // date input (YYYY-MM-DD)
-    const [p1, setP1] = useState(100);
-    const [p2, setP2] = useState(60);
-    const [p3, setP3] = useState(30);
-    const [criterios, setCriterios] = useState("tempo, acertos");
+    const [descricao, setDescricao] = useState(""); // HTML
+    const [tipo, setTipo] = useState("");
+    const [inicio, setInicio] = useState("");
+    const [fim, setFim] = useState("");
+    const [p1, setP1] = useState(0);
+    const [p2, setP2] = useState(0);
+    const [p3, setP3] = useState(0);
+    const [criterios, setCriterios] = useState(""); // HTML
     const [salvando, setSalvando] = useState(false);
     const [erro, setErro] = useState("");
 
-    // Opções de tipo (fixas por enquanto)
     const tipos = useMemo(
         () => [
             "ARRECADACAO",
@@ -42,34 +50,37 @@ export default function ModalAtividade({
         []
     );
 
-    // Carrega dados no modo edição
     useEffect(() => {
-        if (visivel && inicial) {
-            setTitulo(inicial.titulo || "");
-            setDescricao(inicial.descricao || "");
-            setTipo(inicial.tipo || "QUIZ");
-            setInicio(inicial.inicio ? inicial.inicio.slice(0, 10) : "");
-            setFim(inicial.fim ? inicial.fim.slice(0, 10) : "");
-            setP1(inicial.pontosPrimeiro ?? 100);
-            setP2(inicial.pontosSegundo ?? 60);
-            setP3(inicial.pontosTerceiro ?? 30);
-            setCriterios(Array.isArray(inicial.criterios) ? inicial.criterios.join(", ") : "tempo, acertos");
-        }
-        if (visivel && !inicial) {
-            // reset no modo criar
+        if (!visivel) return;
+        if (modo === "editar" && dadosIniciais) {
+            setTitulo(dadosIniciais.titulo || "");
+            setDescricao(dadosIniciais.descricao || ""); // já pode vir HTML
+            setTipo(dadosIniciais.tipo || "");
+            setInicio(toDateInput(dadosIniciais.inicio));
+            setFim(toDateInput(dadosIniciais.fim));
+            setP1(dadosIniciais.pontosPrimeiro ?? 0);
+            setP2(dadosIniciais.pontosSegundo ?? 0);
+            setP3(dadosIniciais.pontosTerceiro ?? 0);
+            setCriterios(
+                Array.isArray(dadosIniciais.criterios)
+                    ? dadosIniciais.criterios.join(", ")
+                    : (dadosIniciais.criterios || "")
+            );
+        } else {
+            // modo criar: tudo zerado
             setTitulo("");
             setDescricao("");
-            setTipo("QUIZ");
+            setTipo("");
             setInicio("");
             setFim("");
-            setP1(100);
-            setP2(60);
-            setP3(30);
-            setCriterios("tempo, acertos");
+            setP1(0);
+            setP2(0);
+            setP3(0);
+            setCriterios("");
         }
         setErro("");
         setSalvando(false);
-    }, [visivel, inicial]);
+    }, [visivel, modo, dadosIniciais]);
 
     if (!visivel) return null;
 
@@ -77,39 +88,44 @@ export default function ModalAtividade({
         e.preventDefault();
         setErro("");
 
-        if (!gincanaAtiva?.id) {
-            setErro("Nenhuma gincana ativa selecionada.");
-            return;
-        }
+        if (!gincanaAtiva?.id) return setErro("Nenhuma gincana ativa selecionada.");
         if (!titulo.trim()) return setErro("Informe o título.");
-        if (!descricao.trim()) return setErro("Informe a descrição.");
+        // Descrição é HTML — também validamos conteúdo sem tags
+        const descPlain = htmlToPlainText(descricao).trim();
+        if (!descPlain) return setErro("Informe a descrição.");
+        if (!tipo) return setErro("Selecione o tipo da atividade.");
         if (!inicio) return setErro("Informe a data de início.");
         if (!fim) return setErro("Informe a data de término.");
+
+        // Critérios: o input é em HTML, convertemos para texto e split em vírgulas
+        const criteriosPlain = htmlToPlainText(criterios);
+        const criteriosList = criteriosPlain
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
 
         const payload = {
             gincanaId: gincanaAtiva.id,
             titulo: titulo.trim(),
-            descricao: descricao.trim(),
+            descricao, // HTML
             tipo,
             inicio: toISODateAtMidnightTZ(inicio),
             fim: toISODateAtMidnightTZ(fim),
             pontosPrimeiro: Number(p1) || 0,
             pontosSegundo: Number(p2) || 0,
             pontosTerceiro: Number(p3) || 0,
-            criterios: criterios
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean),
-            statusAtividade: "AGENDADA",
+            criterios: criteriosList,
+            statusAtividade:
+                modo === "editar" ? (dadosIniciais?.statusAtividade || "AGENDADA") : "AGENDADA",
             ativa: true,
         };
 
         try {
             setSalvando(true);
-            await onSalvar?.(payload, inicial); // quem chama decide se é criar ou editar
+            await onSalvar?.(payload, dadosIniciais);
             onFechar?.();
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            console.error(err);
             setErro("Não foi possível salvar a atividade.");
         } finally {
             setSalvando(false);
@@ -134,7 +150,13 @@ export default function ModalAtividade({
 
                     <div className="field">
                         <label className="label" htmlFor="tipo">Tipo</label>
-                        <select id="tipo" className="input" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+                        <select
+                            id="tipo"
+                            className="input"
+                            value={tipo}
+                            onChange={(e) => setTipo(e.target.value)}
+                        >
+                            <option value="" disabled>Selecione o tipo</option>
                             {tipos.map((t) => (
                                 <option key={t} value={t}>{t}</option>
                             ))}
@@ -143,57 +165,91 @@ export default function ModalAtividade({
 
                     <div className="field" style={{ gridColumn: "1 / -1" }}>
                         <label className="label" htmlFor="titulo">Título</label>
-                        <input id="titulo" className="input" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+                        <input
+                            id="titulo"
+                            className="input"
+                            placeholder="Ex.: Grito de Guerra"
+                            value={titulo}
+                            onChange={(e) => setTitulo(e.target.value)}
+                        />
                     </div>
 
+                    {/* Descrição (rich text, mais alta) */}
                     <div className="field" style={{ gridColumn: "1 / -1" }}>
-                        <label className="label" htmlFor="descricao">Descrição</label>
-                        <textarea id="descricao" className="input" rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+                        <label className="label">Descrição</label>
+                        <EditorTexto
+                            value={descricao}
+                            onChange={setDescricao}
+                            placeholder="Descreva a atividade (pode usar negrito, listas, links...)"
+                            height="180px"
+                        />
                     </div>
 
                     <div className="field">
                         <label className="label" htmlFor="inicio">Início</label>
-                        <input id="inicio" type="date" className="input" value={inicio} onChange={(e) => setInicio(e.target.value)} />
+                        <input
+                            id="inicio"
+                            type="date"
+                            className="input"
+                            value={inicio}
+                            onChange={(e) => setInicio(e.target.value)}
+                        />
                     </div>
 
                     <div className="field">
                         <label className="label" htmlFor="fim">Fim</label>
-                        <input id="fim" type="date" className="input" value={fim} onChange={(e) => setFim(e.target.value)} />
+                        <input
+                            id="fim"
+                            type="date"
+                            className="input"
+                            value={fim}
+                            onChange={(e) => setFim(e.target.value)}
+                        />
                     </div>
 
                     <div className="field">
                         <label className="label" htmlFor="p1">1º lugar (pts)</label>
-                        <input id="p1" type="number" className="input" value={p1} onChange={(e) => setP1(e.target.value)} />
+                        <input id="p1" type="number" className="input" placeholder="ex.: 100" value={p1} onChange={(e) => setP1(e.target.value)} />
                     </div>
 
                     <div className="field">
                         <label className="label" htmlFor="p2">2º lugar (pts)</label>
-                        <input id="p2" type="number" className="input" value={p2} onChange={(e) => setP2(e.target.value)} />
+                        <input id="p2" type="number" className="input" placeholder="ex.: 60" value={p2} onChange={(e) => setP2(e.target.value)} />
                     </div>
 
                     <div className="field">
                         <label className="label" htmlFor="p3">3º lugar (pts)</label>
-                        <input id="p3" type="number" className="input" value={p3} onChange={(e) => setP3(e.target.value)} />
+                        <input id="p3" type="number" className="input" placeholder="ex.: 30" value={p3} onChange={(e) => setP3(e.target.value)} />
                     </div>
 
+                    {/* Critérios (rich text, mais alto; será convertido para lista por vírgulas) */}
                     <div className="field" style={{ gridColumn: "1 / -1" }}>
-                        <label className="label" htmlFor="criterios">Critérios (separe por vírgula)</label>
-                        <input
-                            id="criterios"
-                            className="input"
-                            placeholder="ex.: tempo, acertos"
+                        <label className="label">Critérios</label>
+                        <EditorTexto
                             value={criterios}
-                            onChange={(e) => setCriterios(e.target.value)}
+                            onChange={setCriterios}
+                            placeholder="ex.: prazo, condições de entrega..."
+                            height="140px"
                         />
                     </div>
 
-                    {erro && <div className="alert-erro" style={{ gridColumn: "1 / -1" }}>{erro}</div>}
+                    {erro && (
+                        <div className="alert-erro" style={{ gridColumn: "1 / -1" }}>
+                            {erro}
+                        </div>
+                    )}
 
                     <div className="btn-row" style={{ gridColumn: "1 / -1" }}>
                         <button type="submit" className="btn btn-primary" disabled={salvando}>
-                            {salvando ? "Salvando..." : (modo === "editar" ? "Salvar alterações" : "Criar atividade")}
+                            {salvando
+                                ? "Salvando..."
+                                : modo === "editar"
+                                    ? "Salvar alterações"
+                                    : "Criar atividade"}
                         </button>
-                        <button type="button" className="btn btn-secondary" onClick={onFechar}>Cancelar</button>
+                        <button type="button" className="btn btn-secondary" onClick={onFechar}>
+                            Cancelar
+                        </button>
                     </div>
                 </form>
             </div>
