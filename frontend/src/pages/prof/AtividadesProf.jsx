@@ -4,11 +4,14 @@ import api from "../../api/client";
 import "../../styles/Atividades.css";
 import { obterGincanaAtiva } from "../../api/gincana";
 import { atualizarAtividade } from "../../api/atividades";
+import ModalAtividade from "../../components/ModalAtividade";
+import { criarAtividade } from "../../api/atividades";
 
 export default function AtividadesProf() {
   const [gincanaAtiva, setGincanaAtiva] = useState(null);
   const [atividades, setAtividades] = useState([]);
   const [selecionada, setSelecionada] = useState(null);
+  const [modalVisivel, setModalVisivel] = useState(false);
 
   const [filtro, setFiltro] = useState("TODAS"); // TODAS | AGENDADA | EM ANDAMENTO | ENCERRADA
   const [erro, setErro] = useState("");
@@ -16,7 +19,7 @@ export default function AtividadesProf() {
 
   const [processando, setProcessando] = useState(false);
   const [ok, setOk] = useState("");
-
+  console.log(ok)
   useEffect(() => {
     (async () => {
       setCarregando(true);
@@ -29,6 +32,24 @@ export default function AtividadesProf() {
   useEffect(() => {
     setSelecionada(null);
   }, [atividades]);
+
+  // abrir modal criar
+  function abrirModalCriar() {
+    setModalVisivel(true);
+  }
+
+  // fechar modal
+  function fecharModal() {
+    setModalVisivel(false);
+  }
+
+  // salvar nova atividade
+  async function salvarNovaAtividade(payload) {
+    // payload já vem no formato correto do Modal
+    await criarAtividade(payload);
+    // recarrega lista
+    await carregarAtividades(payload.gincanaId);
+  }
 
   function fmtData(v) {
     if (!v) return "-";
@@ -171,7 +192,7 @@ export default function AtividadesProf() {
             </header>
 
             <div className="btn-row" style={{ justifyContent: "flex-start", marginBottom: 16 }}>
-              <button className="btn btn-primary">➕ Nova Atividade</button>
+              <button className="btn btn-primary" onClick={abrirModalCriar}>➕ Nova Atividade</button>
               <button
                 className="btn btn-secondary"
                 onClick={() => carregarAtividades(gincanaAtiva.id)}
@@ -308,6 +329,12 @@ export default function AtividadesProf() {
           </aside>
         </div>
       )}
+      <ModalAtividade
+        visivel={modalVisivel}
+        onFechar={fecharModal}
+        onSalvar={salvarNovaAtividade}
+        gincanaAtiva={gincanaAtiva}
+      />
     </main>
   );
 }
