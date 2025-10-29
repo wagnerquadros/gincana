@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api/client";
 import "../../styles/Atividades.css";
 import { obterGincanaAtiva } from "../../api/gincana";
+import { atualizarAtividade } from "../../api/atividades";
 
 export default function AtividadesProf() {
   const [gincanaAtiva, setGincanaAtiva] = useState(null);
@@ -12,6 +13,9 @@ export default function AtividadesProf() {
   const [filtro, setFiltro] = useState("TODAS"); // TODAS | AGENDADA | EM ANDAMENTO | ENCERRADA
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
+
+  const [processando, setProcessando] = useState(false);
+  const [ok, setOk] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -70,6 +74,42 @@ export default function AtividadesProf() {
       console.error(e);
       setErro("Erro ao carregar atividades.");
       setAtividades([]);
+    }
+  }
+
+  async function handleIniciarAtividade() {
+    if (!selecionada) return;
+    const confirma = window.confirm(
+      "Iniciar esta atividade agora?\nIsso definirá o início como o momento atual e colocará a atividade EM ANDAMENTO."
+    );
+    if (!confirma) return;
+
+    try {
+      setProcessando(true);
+      setErro("");
+      setOk("");
+
+      const agoraISO = new Date().toISOString();
+      const atualizada = await atualizarAtividade(selecionada.id, {
+        inicio: agoraISO,
+        statusAtividade: "EM ANDAMENTO",
+      });
+
+      // Atualiza a lista
+      setAtividades((prev) =>
+        prev.map((a) => (a.id === atualizada.id ? { ...a, ...atualizada } : a))
+      );
+      // Atualiza o painel da direita, se esta for a selecionada
+      setSelecionada((prev) =>
+        prev && prev.id === atualizada.id ? { ...prev, ...atualizada } : prev
+      );
+
+      setOk("Atividade iniciada com sucesso!");
+    } catch (e) {
+      console.error(e);
+      setErro("Não foi possível iniciar a atividade.");
+    } finally {
+      setProcessando(false);
     }
   }
 
@@ -233,22 +273,31 @@ export default function AtividadesProf() {
 
                 {/* ===== BOTÕES CONDICIONAIS (estáticos) ===== */}
                 <div className="btn-row">
-                  <button className="btn btn-primary">✏️ Editar</button>
+                  {String(selecionada.statusAtividade).toUpperCase() === "AGENDADA" && (
+                    <button
+                      className="btn btn-success"
+                      onClick={handleIniciarAtividade}
+                      disabled={processando}
+                      title="Definir início agora e colocar EM ANDAMENTO"
+                    >
+                      {processando ? "Iniciando..." : "▶️ Iniciar atividade"}
+                    </button>
+                  )}
 
-                  {(() => {
-                    const status = (selecionada.statusAtividade || "").toUpperCase();
-                    if (status === "AGENDADA") {
-                      return <button className="btn btn-success">▶️ Iniciar atividade</button>;
-                    }
-                    if (status === "EM ANDAMENTO") {
-                      return <button className="btn btn-danger">🏁 Encerrar atividade</button>;
-                    }
-                    if (status === "ENCERRADA") {
-                      return <button className="btn btn-secondary">📊 Ver pontuação</button>;
-                    }
-                    // fallback (se surgir algum outro status)
-                    return null;
-                  })()}
+                  {String(selecionada.statusAtividade).toUpperCase() === "EM ANDAMENTO" && (
+                    <button className="btn btn-danger" title="Encerrar atividade">
+                      🏁 Encerrar Atividade
+                    </button>
+                  )}
+
+                  {String(selecionada.statusAtividade).toUpperCase() === "ENCERRADA" && (
+                    <button className="btn btn-secondary" title="Ver pontuação/ranking">
+                      🏆 Ver pontuação
+                    </button>
+                  )}
+
+                  {/* Se quiser manter o Editar sempre visível */}
+                  <button className="btn btn-primary">✏️ Editar</button>
                 </div>
               </>
             ) : (
