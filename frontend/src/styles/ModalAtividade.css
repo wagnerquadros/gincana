@@ -23,3 +23,53 @@
     align-items: center;
     margin-bottom: 12px;
 }
+
+/* Bloco de posição */
+.bloco-posicao {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: #f9fafb;
+}
+
+.bloco-header {
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+}
+
+.bloco-header h4 {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #0f172a;
+}
+
+.bloco-header span {
+    font-size: 14px;
+    color: #334155;
+    font-weight: 500;
+}
+
+/* Linha com três colunas */
+.linha-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+}
+
+.col-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+@media (max-width: 600px) {
+    .linha-form {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,25 +1,28 @@
-// src/pages/prof/AtividadesProf.jsx
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/client";
 import "../../styles/Atividades.css";
 import { obterGincanaAtiva } from "../../api/gincana";
-import { atualizarAtividade } from "../../api/atividades";
+import { atualizarAtividade, criarAtividade } from "../../api/atividades";
 import ModalAtividade from "../../components/ModalAtividade";
-import { criarAtividade } from "../../api/atividades";
+import ModalEncerrarAtividade from "../../components/ModalEncerrarAtividade";
 
 export default function AtividadesProf() {
   const [gincanaAtiva, setGincanaAtiva] = useState(null);
   const [atividades, setAtividades] = useState([]);
   const [selecionada, setSelecionada] = useState(null);
+
   const [modalVisivel, setModalVisivel] = useState(false);
+  const [mostrarEncerrar, setMostrarEncerrar] = useState(false);
 
   const [filtro, setFiltro] = useState("TODAS"); // TODAS | AGENDADA | EM ANDAMENTO | ENCERRADA
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
 
   const [processando, setProcessando] = useState(false);
+  // Se não quiser mais a mensagem OK, pode remover as duas linhas abaixo
   const [ok, setOk] = useState("");
-  console.log(ok)
+  console.log(ok);
+
   useEffect(() => {
     (async () => {
       setCarregando(true);
@@ -30,25 +33,34 @@ export default function AtividadesProf() {
   }, []);
 
   useEffect(() => {
+    // limpamos a seleção quando a lista muda (evita item “fantasma”)
     setSelecionada(null);
   }, [atividades]);
+
+  function abrirModalEncerrar() {
+    if (!selecionada) return;
+    setMostrarEncerrar(true);
+  }
+
+  function fecharModalEncerrar() {
+    setMostrarEncerrar(false);
+  }
 
   // abrir modal criar
   function abrirModalCriar() {
     setModalVisivel(true);
   }
 
-  // fechar modal
+  // fechar modal criar
   function fecharModal() {
     setModalVisivel(false);
   }
 
   // salvar nova atividade
   async function salvarNovaAtividade(payload) {
-    // payload já vem no formato correto do Modal
     await criarAtividade(payload);
-    // recarrega lista
     await carregarAtividades(payload.gincanaId);
+    setModalVisivel(false);
   }
 
   function fmtData(v) {
@@ -116,11 +128,9 @@ export default function AtividadesProf() {
         statusAtividade: "EM ANDAMENTO",
       });
 
-      // Atualiza a lista
       setAtividades((prev) =>
         prev.map((a) => (a.id === atualizada.id ? { ...a, ...atualizada } : a))
       );
-      // Atualiza o painel da direita, se esta for a selecionada
       setSelecionada((prev) =>
         prev && prev.id === atualizada.id ? { ...prev, ...atualizada } : prev
       );
@@ -171,9 +181,9 @@ export default function AtividadesProf() {
           </button>
           <button
             className={`tab-chip ${filtro === "ENCERRADA" ? "active" : ""}`}
-            onClick={() => setFiltro("ENCERRADA")}
+            onClick={() => setFiltro("CONCLUIDA")}
             role="tab"
-            aria-selected={filtro === "ENCERRADA"}
+            aria-selected={filtro === "CONCLUIDA"}
           >
             Encerradas
           </button>
@@ -192,7 +202,9 @@ export default function AtividadesProf() {
             </header>
 
             <div className="btn-row" style={{ justifyContent: "flex-start", marginBottom: 16 }}>
-              <button className="btn btn-primary" onClick={abrirModalCriar}>➕ Nova Atividade</button>
+              <button className="btn btn-primary" onClick={abrirModalCriar}>
+                ➕ Nova Atividade
+              </button>
               <button
                 className="btn btn-secondary"
                 onClick={() => carregarAtividades(gincanaAtiva.id)}
@@ -226,7 +238,7 @@ export default function AtividadesProf() {
             )}
           </section>
 
-          {/* ===== DETALHES DA ATIVIDADE SELECIONADA ===== */}
+          {/* ===== DETALHES ===== */}
           <aside className="card card-elev detalhes-atividade">
             {selecionada ? (
               <>
@@ -239,7 +251,6 @@ export default function AtividadesProf() {
 
                 <p className="atividade-status">{selecionada.statusAtividade}</p>
 
-                {/* campos (sem ID e sem gincanaId) */}
                 <div className="atividade-campo">
                   <span className="campo-label">Descrição</span>
                   <p className="campo-valor">{selecionada.descricao}</p>
@@ -257,7 +268,6 @@ export default function AtividadesProf() {
                   </p>
                 </div>
 
-                {/* bloco de pontuação destacado */}
                 <div className="pontuacao-card">
                   <div className="pontuacao-col">
                     <span className="campo-label">1º lugar</span>
@@ -292,7 +302,6 @@ export default function AtividadesProf() {
                   <p className="campo-valor">{fmtData(selecionada.atualizadoEm)}</p>
                 </div>
 
-                {/* ===== BOTÕES CONDICIONAIS (estáticos) ===== */}
                 <div className="btn-row">
                   {String(selecionada.statusAtividade).toUpperCase() === "AGENDADA" && (
                     <button
@@ -306,19 +315,22 @@ export default function AtividadesProf() {
                   )}
 
                   {String(selecionada.statusAtividade).toUpperCase() === "EM ANDAMENTO" && (
-                    <button className="btn btn-danger" title="Encerrar atividade">
+                    <button
+                      className="btn btn-danger"
+                      title="Encerrar atividade"
+                      onClick={abrirModalEncerrar}
+                    >
                       🏁 Encerrar Atividade
                     </button>
                   )}
 
-                  {String(selecionada.statusAtividade).toUpperCase() === "ENCERRADA" && (
+                  {String(selecionada.statusAtividade).toUpperCase() === "CONCLUIDA" && (
                     <button className="btn btn-secondary" title="Ver pontuação/ranking">
                       🏆 Ver pontuação
                     </button>
                   )}
-
-                  {/* Se quiser manter o Editar sempre visível */}
                   <button className="btn btn-primary">✏️ Editar</button>
+
                 </div>
               </>
             ) : (
@@ -329,12 +341,27 @@ export default function AtividadesProf() {
           </aside>
         </div>
       )}
+
+      {/* ===== MODAIS ===== */}
       <ModalAtividade
         visivel={modalVisivel}
         onFechar={fecharModal}
         onSalvar={salvarNovaAtividade}
         gincanaAtiva={gincanaAtiva}
       />
+
+      {mostrarEncerrar && (
+        <ModalEncerrarAtividade
+          aberta={mostrarEncerrar}
+          onClose={fecharModalEncerrar}
+          atividade={selecionada}
+          gincanaId={gincanaAtiva?.id}
+          onSucesso={() => {
+            if (gincanaAtiva?.id) carregarAtividades(gincanaAtiva.id);
+            setSelecionada(null);
+          }}
+        />
+      )}
     </main>
   );
 }
