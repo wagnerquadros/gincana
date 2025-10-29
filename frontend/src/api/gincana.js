@@ -46,3 +46,10 @@ export async function atualizarGincana(id, { nome, dataInicio }) {
   const { data } = await api.put(`/gincanas/${id}`, payload);
   return data;
 }
+
+export async function listarGincanasEncerradas() {
+  const lista = await listarGincanas();
+  return lista
+    .filter(g => (g.status || "").toUpperCase() === "ENCERRADA")
+    .sort((a, b) => new Date(b.dataFim || 0) - new Date(a.dataFim || 0));
+}

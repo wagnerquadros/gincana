@@ -1,3 +1,264 @@
+// src/pages/prof/AtividadesProf.jsx
+import { useEffect, useMemo, useState } from "react";
+import api from "../../api/client";
+import "../../styles/Atividades.css";
+import { obterGincanaAtiva } from "../../api/gincana";
+
 export default function AtividadesProf() {
-  return <h1>Atividades</h1>;
+  const [gincanaAtiva, setGincanaAtiva] = useState(null);
+  const [atividades, setAtividades] = useState([]);
+  const [selecionada, setSelecionada] = useState(null);
+
+  const [filtro, setFiltro] = useState("TODAS"); // TODAS | AGENDADA | EM ANDAMENTO | ENCERRADA
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setCarregando(true);
+      await carregarAtivaEAtividades();
+      setCarregando(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setSelecionada(null);
+  }, [atividades]);
+
+  function fmtData(v) {
+    if (!v) return "-";
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString();
+  }
+
+  const atividadesFiltradas = useMemo(() => {
+    if (filtro === "TODAS") return atividades;
+    const alvo = filtro.toUpperCase();
+    return atividades.filter(
+      (a) => (a.statusAtividade || "").toUpperCase() === alvo
+    );
+  }, [atividades, filtro]);
+
+  async function carregarAtivaEAtividades() {
+    try {
+      setErro("");
+      const ativa = await obterGincanaAtiva();
+      setGincanaAtiva(ativa || null);
+
+      if (!ativa?.id) {
+        setAtividades([]);
+        setErro("Nenhuma gincana ativa no momento. Crie/ative uma para listar atividades.");
+        return;
+      }
+      await carregarAtividades(ativa.id);
+    } catch (e) {
+      console.error(e);
+      setErro("Erro ao carregar dados da gincana/atividades.");
+      setAtividades([]);
+    }
+  }
+
+  async function carregarAtividades(idGincana) {
+    try {
+      setErro("");
+      const { data } = await api.get(`/atividades/gincana/${idGincana}`);
+      const lista = Array.isArray(data) ? data : [];
+      lista.sort((a, b) => new Date(a.inicio || 0) - new Date(b.inicio || 0));
+      setAtividades(lista);
+    } catch (e) {
+      console.error(e);
+      setErro("Erro ao carregar atividades.");
+      setAtividades([]);
+    }
+  }
+
+  return (
+    <main className="page-wrap">
+      {/* ===== FILTROS + NOME DA GINCANA ===== */}
+      <header className="gincana-header">
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <strong style={{ fontWeight: 600, fontSize: 20 }}>
+            {gincanaAtiva?.nome ? `🎉 ${gincanaAtiva.nome}` : "—"}
+          </strong>
+        </div>
+
+        <div className="gincana-tabs" role="tablist" aria-label="Filtros de atividades">
+          <button
+            className={`tab-chip ${filtro === "TODAS" ? "active" : ""}`}
+            onClick={() => setFiltro("TODAS")}
+            role="tab"
+            aria-selected={filtro === "TODAS"}
+          >
+            Todas
+          </button>
+          <button
+            className={`tab-chip ${filtro === "AGENDADA" ? "active" : ""}`}
+            onClick={() => setFiltro("AGENDADA")}
+            role="tab"
+            aria-selected={filtro === "AGENDADA"}
+          >
+            Agendadas
+          </button>
+          <button
+            className={`tab-chip ${filtro === "EM ANDAMENTO" ? "active" : ""}`}
+            onClick={() => setFiltro("EM ANDAMENTO")}
+            role="tab"
+            aria-selected={filtro === "EM ANDAMENTO"}
+          >
+            Em andamento
+          </button>
+          <button
+            className={`tab-chip ${filtro === "ENCERRADA" ? "active" : ""}`}
+            onClick={() => setFiltro("ENCERRADA")}
+            role="tab"
+            aria-selected={filtro === "ENCERRADA"}
+          >
+            Encerradas
+          </button>
+        </div>
+      </header>
+
+      {erro && <div className="alert-erro">{erro}</div>}
+      {carregando && <p>Carregando...</p>}
+
+      {!carregando && gincanaAtiva && (
+        <div className="atividades-layout">
+          {/* ===== LISTA ===== */}
+          <section className="card card-elev lista-atividades">
+            <header className="card-header" style={{ alignItems: "center" }}>
+              <h2 style={{ margin: 0, fontWeight: 600 }}>Atividades</h2>
+            </header>
+
+            <div className="btn-row" style={{ justifyContent: "flex-start", marginBottom: 16 }}>
+              <button className="btn btn-primary">➕ Nova Atividade</button>
+              <button
+                className="btn btn-secondary"
+                onClick={() => carregarAtividades(gincanaAtiva.id)}
+                title="Atualizar lista"
+              >
+                🔄 Atualizar
+              </button>
+            </div>
+
+            {atividadesFiltradas.length === 0 ? (
+              <div className="eq-vazio">Nenhuma atividade encontrada neste filtro.</div>
+            ) : (
+              <ul className="lista-cards-atividades">
+                {atividadesFiltradas.map((a) => (
+                  <li
+                    key={a.id}
+                    className={`item-atividade ${selecionada?.id === a.id ? "ativo" : ""}`}
+                    onClick={() => setSelecionada(a)}
+                  >
+                    <div className="atividade-topo">
+                      <strong className="atividade-titulo">{a.titulo}</strong>
+                      <span className="atividade-pontos">{a.pontosPrimeiro} pts</span>
+                    </div>
+                    <p className="atividade-descricao">{a.descricao}</p>
+                    <div className="atividade-infos">
+                      <span>{a.tipo}</span> • <span>{fmtData(a.inicio)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* ===== DETALHES DA ATIVIDADE SELECIONADA ===== */}
+          <aside className="card card-elev detalhes-atividade">
+            {selecionada ? (
+              <>
+                <div className="atividade-topo">
+                  <h2 className="atividade-titulo">{selecionada.titulo}</h2>
+                  <span className="atividade-pontos">
+                    {selecionada.pontosPrimeiro} pts
+                  </span>
+                </div>
+
+                <p className="atividade-status">{selecionada.statusAtividade}</p>
+
+                {/* campos (sem ID e sem gincanaId) */}
+                <div className="atividade-campo">
+                  <span className="campo-label">Descrição</span>
+                  <p className="campo-valor">{selecionada.descricao}</p>
+                </div>
+
+                <div className="atividade-campo">
+                  <span className="campo-label">Categoria</span>
+                  <p className="campo-valor">{selecionada.tipo}</p>
+                </div>
+
+                <div className="atividade-campo">
+                  <span className="campo-label">Período</span>
+                  <p className="campo-valor">
+                    {fmtData(selecionada.inicio)} — {fmtData(selecionada.fim)}
+                  </p>
+                </div>
+
+                {/* bloco de pontuação destacado */}
+                <div className="pontuacao-card">
+                  <div className="pontuacao-col">
+                    <span className="campo-label">1º lugar</span>
+                    <div className="pontuacao-valor">{selecionada.pontosPrimeiro} pts</div>
+                  </div>
+                  <div className="pontuacao-col">
+                    <span className="campo-label">2º lugar</span>
+                    <div className="pontuacao-valor">{selecionada.pontosSegundo} pts</div>
+                  </div>
+                  <div className="pontuacao-col">
+                    <span className="campo-label">3º lugar</span>
+                    <div className="pontuacao-valor">{selecionada.pontosTerceiro} pts</div>
+                  </div>
+                </div>
+
+                <div className="atividade-campo">
+                  <span className="campo-label">Critérios</span>
+                  <p className="campo-valor">
+                    {Array.isArray(selecionada.criterios) && selecionada.criterios.length
+                      ? selecionada.criterios.join(", ")
+                      : "—"}
+                  </p>
+                </div>
+
+                <div className="atividade-campo">
+                  <span className="campo-label">Criado em</span>
+                  <p className="campo-valor">{fmtData(selecionada.criadoEm)}</p>
+                </div>
+
+                <div className="atividade-campo">
+                  <span className="campo-label">Atualizado em</span>
+                  <p className="campo-valor">{fmtData(selecionada.atualizadoEm)}</p>
+                </div>
+
+                {/* ===== BOTÕES CONDICIONAIS (estáticos) ===== */}
+                <div className="btn-row">
+                  <button className="btn btn-primary">✏️ Editar</button>
+
+                  {(() => {
+                    const status = (selecionada.statusAtividade || "").toUpperCase();
+                    if (status === "AGENDADA") {
+                      return <button className="btn btn-success">▶️ Iniciar atividade</button>;
+                    }
+                    if (status === "EM ANDAMENTO") {
+                      return <button className="btn btn-danger">🏁 Encerrar atividade</button>;
+                    }
+                    if (status === "ENCERRADA") {
+                      return <button className="btn btn-secondary">📊 Ver pontuação</button>;
+                    }
+                    // fallback (se surgir algum outro status)
+                    return null;
+                  })()}
+                </div>
+              </>
+            ) : (
+              <div className="eq-vazio">
+                Selecione uma atividade na lista para ver os detalhes.
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
+    </main>
+  );
 }
