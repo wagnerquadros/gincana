@@ -89,4 +89,25 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { create, list, getOne, update, encerrarPontuando, remove };
+async function listByGincana(req, res) {
+  try {
+    const { gincanaId } = req.params;
+    const { statusAtividade, ativa } = req.query;
+
+    if (!gincanaId || !gincanaId.trim()) {
+      return res.status(400).json({ error: "gincanaId é obrigatório" });
+    }
+
+    const out = await listAtividades({
+      gincanaId: gincanaId.trim(),
+      statusAtividade,
+      ativa: typeof ativa === "undefined" ? undefined : ativa === "true",
+    });
+
+    return res.json(out);
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+module.exports = { create, list, getOne, update, encerrarPontuando, remove, listByGincana };

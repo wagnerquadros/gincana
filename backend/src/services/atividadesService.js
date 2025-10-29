@@ -78,21 +78,33 @@ async function createAtividade(data) {
   return payload;
 }
 
-async function listAtividades({ gincanaId, statusAtividade, ativa } = {}) {
+async function listAtividades({ gincanaId } = {}) {
   if (!db) throw new Error("Firebase não inicializado");
 
   let query = db.collection(COLL);
-  if (isStr(gincanaId))
-    query = query.where("gincanaId", "==", gincanaId.trim());
-  if (isStr(statusAtividade))
-    query = query.where("statusAtividade", "==", statusAtividade);
-  if (typeof ativa === "boolean") query = query.where("ativa", "==", !!ativa);
 
-  const snap = await query.orderBy("inicio", "asc").get();
-  return snap.docs.map((d) => {
+  // Filtra apenas por gincanaId (não precisa de índice composto)
+  if (isStr(gincanaId)) {
+    query = query.where("gincanaId", "==", gincanaId.trim());
+  }
+
+  // Busca sem orderBy para evitar erro de índice
+  const snap = await query.get();
+
+  // Converte todos os documentos encontrados
+  const atividades = snap.docs.map((d) => {
     const a = Atividade.fromDoc(d);
     return a?.toObject ? a.toObject() : a;
   });
+
+  // Ordena em memória pela data de início (opcional)
+  atividades.sort((a, b) => {
+    const ta = new Date(a?.inicio || 0).getTime();
+    const tb = new Date(b?.inicio || 0).getTime();
+    return ta - tb;
+  });
+
+  return atividades;
 }
 
 async function getAtividade(id) {
@@ -150,8 +162,8 @@ async function updateAtividade(id, data = {}) {
     upd.criterios = Array.isArray(data.criterios)
       ? data.criterios
       : data.criterios
-      ? [data.criterios]
-      : [];
+        ? [data.criterios]
+        : [];
   }
 
   if (typeof data.statusAtividade !== "undefined") {

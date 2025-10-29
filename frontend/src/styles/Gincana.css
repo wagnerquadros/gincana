@@ -181,9 +181,9 @@
 }
 
 .tab-chip.active {
-  background: var(--brand);
+  background: var(--blue);
   color: #fff;
-  border-color: var(--brand);
+  border-color: var(--blue);
   box-shadow: 0 6px 14px rgba(37, 99, 235, 0.28);
 }
 
@@ -333,6 +333,115 @@
   }
 
   .ended-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gincana-tabs {
+  margin-left: auto;
+}
+
+.acts-card {
+  margin-top: 16px;
+}
+
+.acts-grid {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.act-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, .06);
+  transition: transform .06s ease, box-shadow .15s ease;
+}
+
+.act-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(2, 6, 23, .10);
+}
+
+.act-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.act-emoji {
+  font-size: 20px;
+}
+
+.act-badge {
+  font-size: 12px;
+  font-weight: 600;
+  /* padrão 600 como você pediu */
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #334155;
+}
+
+/* variações por status (ex.: AGENDADA, ATIVA, ENCERRADA) */
+.act-badge.agendada {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.act-badge.ativa {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.act-badge.encerrada {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.act-title {
+  margin-top: 8px;
+  font-weight: 600;
+  /* 600 */
+  color: #0f172a;
+}
+
+.act-meta {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.act-tipo {
+  font-weight: 600;
+  /* 600 */
+}
+
+.act-sep {
+  opacity: .5;
+}
+
+.act-id {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Responsivo para atividades */
+@media (max-width: 900px) {
+  .acts-grid {
     grid-template-columns: 1fr;
   }
 }

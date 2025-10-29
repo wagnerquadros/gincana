@@ -41,5 +41,10 @@ router.delete(
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
   controller.remove
 );
+router.get(
+  "/gincana/:gincanaId",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  controller.listByGincana
+);
 
 module.exports = router;

@@ -9,6 +9,7 @@ import {
 } from "../../api/gincana";
 import { listarEquipes } from "../../api/equipes";
 import "../../styles/Gincana.css";
+import api from "../../api/client";
 
 export default function GincanaProf() {
   const navigate = useNavigate();
@@ -39,7 +40,20 @@ export default function GincanaProf() {
   const [editDataInicio, setEditDataInicio] = useState("");
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
 
+  // ===== Estado atividades da gincana ativa =====
+  const [atividadesAtiva, setAtividadesAtiva] = useState([]);
+  const [carregandoAtividades, setCarregandoAtividades] = useState(false);
+
   const [encerrando, setEncerrando] = useState(false);
+
+  // ===== Helper de data/hora (para atividades) =====
+  function fmtDataHora(v) {
+    if (!v) return "-";
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return String(v);
+    // simples e local — inclui hora:minuto
+    return d.toLocaleString();
+  }
 
   // ===== Carregamento inicial =====
   useEffect(() => {
@@ -88,8 +102,10 @@ export default function GincanaProf() {
             ativo: !!e.ativo,
           }))
         );
+        await carregarAtividadesAtiva(g.id);
       } else {
         setEquipesAtiva([]);
+        setAtividadesAtiva([]);
       }
     } catch (e) {
       console.error(e);
@@ -219,11 +235,42 @@ export default function GincanaProf() {
     [equipesAtiva]
   );
 
+  async function carregarAtividadesAtiva(gincanaId) {
+    if (!gincanaId) {
+      setAtividadesAtiva([]);
+      return;
+    }
+    setCarregandoAtividades(true);
+    try {
+      const { data } = await api.get(`/atividades/gincana/${gincanaId}`);
+      const lista = Array.isArray(data) ? data : [];
+      // Ordena por início (mais próxima primeiro)
+      lista.sort((a, b) => new Date(a.inicio || 0) - new Date(b.inicio || 0));
+      setAtividadesAtiva(
+        lista.map((a) => ({
+          id: a.id,
+          titulo: a.titulo || "",
+          tipo: a.tipo || "",
+          inicio: a.inicio || null,
+          fim: a.fim || null,
+          statusAtividade: a.statusAtividade || "",
+          ativa: !!a.ativa,
+        }))
+      );
+    } catch (e) {
+      console.error(e);
+      setAtividadesAtiva([]);
+    } finally {
+      setCarregandoAtividades(false);
+    }
+  }
+
+
   // ===== UI =====
   return (
     <main className="page-wrap">
       <header className="gincana-header">
-        <h1 className="gincana-title">Gincana</h1>
+
 
         <div className="gincana-tabs" role="tablist" aria-label="Seções da gincana">
           <button
@@ -254,8 +301,8 @@ export default function GincanaProf() {
           {carregandoAtiva ? null : ativa ? (
             <section className="card card-elev">
               <header className="card-header">
-                <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                  <span className="ico-title">🎉</span> Gincana ativa
+                <h2 className="gincana-title" style={{ margin: 0, fontWeight: 600 }}>
+                  {ativa?.nome || "Gincana ativa"}
                 </h2>
                 <span className="status-pill--ativa">ATIVA</span>
               </header>
@@ -459,6 +506,67 @@ export default function GincanaProf() {
               </button>
             </div>
           </section>
+          {/* ===== ATIVIDADES DA GINCANA ATIVA ===== */}
+          <section className="card card-elev acts-card">
+            <header className="card-header">
+              <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="ico-title">📅</span> Atividades da gincana
+              </h2>
+              <small className="eq-tip">
+                {carregandoAtividades
+                  ? ""
+                  : ativa
+                    ? `${atividadesAtiva.length} atividade(s)`
+                    : "Crie/ative uma gincana para cadastrar atividades."}
+              </small>
+            </header>
+
+            {carregandoAtividades ? null : ativa ? (
+              atividadesAtiva.length ? (
+                <ul className="acts-grid">
+                  {atividadesAtiva.map((a) => (
+                    <li key={a.id} className="act-card">
+                      <div className="act-top">
+                        <span className="act-emoji" aria-hidden="true">🎯</span>
+                        <span className={`act-badge ${a.statusAtividade?.toLowerCase() || ""}`}>
+                          {a.statusAtividade || "—"}
+                        </span>
+                      </div>
+                      <div className="act-title">{a.titulo}</div>
+                      <div className="act-meta">
+                        <span className="act-tipo">{a.tipo || "—"}</span>
+                        <span className="act-sep">•</span>
+                        <span>{fmtDataHora(a.inicio)} — {fmtDataHora(a.fim)}</span>
+                      </div>
+                      <div className="act-id">#{a.id.slice(0, 6)}</div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="eq-vazio">Nenhuma atividade cadastrada nesta gincana.</div>
+              )
+            ) : null}
+
+            <div className="btn-row">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate("/prof/atividades")}
+              >
+                🛠️ Gerenciar Atividades
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => carregarAtividadesAtiva(ativa?.id)}
+                disabled={!ativa}
+                title="Recarregar atividades"
+              >
+                🔄 Atualizar Lista
+              </button>
+            </div>
+          </section>
+
         </>
       )}
 
