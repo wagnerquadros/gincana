@@ -70,6 +70,20 @@ const listarEquipesPorGincanaController = async (req, res) => {
   }
 };
 
+const obterEquipeResumoController = async (req, res) => {
+  try {
+    const equipe = await obterEquipePorId(req.params.id);
+    if (!equipe) {
+      return res.status(404).json({ error: "Equipe não encontrada" });
+    }
+    // ✅ retorna apenas o nome
+    return res.json({ nome: equipe.nome });
+  } catch (err) {
+    return res.status(404).json({ error: err.message });
+  }
+};
+
+
 module.exports = {
   criarEquipeController,
   listarEquipesController,
@@ -77,4 +91,5 @@ module.exports = {
   atualizarEquipeController,
   deletarEquipeController,
   listarEquipesPorGincanaController,
+  obterEquipeResumoController,
 };

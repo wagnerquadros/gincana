@@ -1,190 +1,261 @@
-// controllers/usuariosController.js
+// src/controllers/usuariosController.js
 const RoleEnum = require("../models/enums/RoleEnum");
 const {
-  getById,
   listAll,
+  getById,
   createUsuario,
   updateUsuario,
   updateSenha,
   softDelete,
+  // focados em aluno/equipe (mantidos caso você use essas rotas):
+  listAlunos,
+  getAlunoById,
+  updateAlunoEquipe,
+  listAlunosPorEquipe,
 } = require("../services/usuariosService");
 
+/* Helpers de role */
+function isAdm(user) {
+  return (user?.role || "").toUpperCase() === RoleEnum.ADM;
+}
+function isProfessor(user) {
+  return (user?.role || "").toUpperCase() === RoleEnum.PROFESSOR;
+}
+function isAluno(user) {
+  return (user?.role || "").toUpperCase() === RoleEnum.ALUNO;
+}
+
+/**
+ * POST /usuarios (criar via painel)
+ * ADM e PROFESSOR podem criar (se quiser restringir ADM-only, ajuste nas rotas)
+ */
 async function create(req, res) {
   try {
-    const { nome, foto, email, senha, role, ativo } = req.body;
+    // (opcional) impedir professor de criar ADM
+    // if (isProfessor(req.user) && (req.body?.role || "").toUpperCase() === RoleEnum.ADM) {
+    //   return res.status(403).json({ error: "Somente ADM pode criar ADM" });
+    // }
 
-    // Permitir ADM e PROFESSOR criar professores, mas somente ADM pode criar ADM
-    if (role === RoleEnum.ADM && req.user?.role !== RoleEnum.ADM) {
-      return res.status(403).json({ error: "Apenas ADM pode criar outro ADM" });
-    }
-
-    if (
-      role === RoleEnum.PROFESSOR &&
-      ![RoleEnum.ADM, RoleEnum.PROFESSOR].includes(req.user?.role)
-    ) {
-      return res
-        .status(403)
-        .json({ error: "Apenas ADM ou PROFESSOR podem criar professores" });
-    }
-
-    const novo = await createUsuario({
-      nome,
-      foto,
-      email,
-      senha,
-      role: role || RoleEnum.ALUNO,
-      ativo,
-    });
-
+    const novo = await createUsuario(req.body);
     res.status(201).json(novo);
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 }
 
+/**
+ * POST /auth/signup (público)
+ * Cria usuário SEM autenticação, sempre com role = ALUNO e ativo = true
+ */
 async function signup(req, res) {
   try {
-    let { nome, foto, email, senha } = req.body;
-
+    const { nome, email, senha, foto } = req.body;
     if (!nome || !email || !senha) {
       return res
         .status(400)
         .json({ error: "Campos obrigatórios: nome, email, senha" });
     }
-
-    email = String(email).toLowerCase().trim();
-
     const novo = await createUsuario({
-      nome: String(nome).trim(),
-      foto: typeof foto === "string" ? foto : null,
+      nome,
       email,
       senha,
+      foto: typeof foto === "string" ? foto : null,
       role: RoleEnum.ALUNO,
       ativo: true,
     });
-
-    return res.status(201).json(novo);
+    res.status(201).json(novo);
   } catch (e) {
-    return res.status(400).json({ error: e.message });
+    res.status(400).json({ error: e.message });
   }
 }
 
-// ADM lista todos
+/**
+ * GET /usuarios — Lista TODOS os usuários
+ * Aceita ?ativo=true|false (opcional)
+ */
 async function list(req, res) {
   try {
-    const { limit, page } = req.query;
-    const data = await listAll({
-      limit: Number(limit) || 50,
-      page: Number(page) || 1,
-    });
-    return res.json(data);
+    const { ativo } = req.query;
+    const todos = await listAll();
+    let out = todos;
+
+    if (typeof ativo !== "undefined") {
+      const flag = ativo === "true";
+      out = todos.filter((u) => !!u.ativo === flag);
+    }
+
+    res.json(out);
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message });
   }
 }
 
-// ADM ou o próprio usuário pode visualizar
+/**
+ * GET /usuarios/:id — ADM/PROF podem ver qualquer; ALUNO só vê a si mesmo
+ */
 async function getOne(req, res) {
   try {
-    const { id } = req.params;
+    const alvoId = req.params.id;
+    const alvo = await getById(alvoId);
+    if (!alvo) return res.status(404).json({ error: "Usuário não encontrado" });
 
-    if (
-      req.user.role !== RoleEnum.ADM &&
-      req.user.role !== RoleEnum.PROFESSOR &&
-      req.user.id !== id
-    ) {
-      return res.status(403).json({ error: "Acesso negado" });
+    if (isAluno(req.user) && req.user.id !== alvoId) {
+      return res
+        .status(403)
+        .json({ error: "Sem permissão para acessar este usuário" });
     }
-
-    const user = await getById(id);
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
-
-    const { senha, ...safe } = user;
-    return res.json(safe);
+    res.json(alvo);
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message });
   }
 }
 
-// ADM pode alterar qualquer usuário; usuário só altera próprio nome/foto
+/**
+ * PUT /usuarios/:id — Atualização com regras por role
+ * - ADM: pode alterar qualquer campo (nome, foto, role, ativo)
+ * - PROFESSOR: se alvo não for ALUNO, não altera role/ativo
+ * - ALUNO: só altera o próprio nome/foto
+ */
 async function update(req, res) {
   try {
-    const { id } = req.params;
-    const { nome, foto, role, ativo } = req.body;
+    const alvoId = req.params.id;
+    const body = { ...req.body };
 
-    // Se não for ADM, bloqueia mudanças sensíveis e impede editar outros
-    if (req.user.role !== RoleEnum.ADM) {
-      if (req.user.id !== id) {
-        return res.status(403).json({ error: "Acesso negado" });
+    const atual = await getById(alvoId);
+    if (!atual) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    if (isAdm(req.user)) {
+      // full access
+    } else if (isProfessor(req.user)) {
+      if ((atual.role || "").toUpperCase() !== RoleEnum.ALUNO) {
+        delete body.role;
+        delete body.ativo;
       }
-      if (typeof role !== "undefined" || typeof ativo !== "undefined") {
-        return res
-          .status(403)
-          .json({ error: "Apenas ADM pode alterar role/ativo" });
+    } else if (isAluno(req.user)) {
+      if (req.user.id !== alvoId) {
+        return res.status(403).json({ error: "Sem permissão" });
       }
-    } else {
-      // ADM alterando role precisa validar enum
-      if (typeof role !== "undefined") {
-        const roles = Object.values(RoleEnum);
-        if (!roles.includes(role)) {
-          return res
-            .status(400)
-            .json({ error: `Role inválida. Use: ${roles.join(", ")}` });
-        }
-      }
+      delete body.role;
+      delete body.ativo;
     }
 
-    const updated = await updateUsuario(id, { nome, foto, role, ativo });
-    return res.json(updated); // updateUsuario já sanitiza
+    const up = await updateUsuario(alvoId, body);
+    res.json(up);
   } catch (e) {
-    return res.status(400).json({ error: e.message });
+    res.status(400).json({ error: e.message });
   }
 }
 
-// Troca de senha: ADM pode trocar a de qualquer usuário; usuário troca a própria
+/**
+ * PATCH /usuarios/:id/senha — ADM qualquer / Usuário apenas a própria
+ */
 async function changePassword(req, res) {
   try {
-    const { id } = req.params;
-    const { novaSenha } = req.body;
+    const alvoId = req.params.id;
+    const { senha } = req.body;
 
-    if (!novaSenha) return res.status(400).json({ error: "Informe novaSenha" });
-    if (String(novaSenha).length < 6) {
+    if (!isAdm(req.user) && req.user.id !== alvoId) {
       return res
-        .status(400)
-        .json({ error: "A senha deve ter pelo menos 6 caracteres" });
+        .status(403)
+        .json({ error: "Sem permissão para trocar a senha" });
     }
 
-    if (req.user.role !== RoleEnum.ADM && req.user.id !== id) {
-      return res.status(403).json({ error: "Acesso negado" });
+    await updateSenha(alvoId, senha);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+}
+
+/**
+ * DELETE /usuarios/:id — Soft delete (inativar)
+ * - ADM: qualquer
+ * - PROFESSOR: somente ALUNO
+ * - Ninguém pode auto-inativar
+ */
+async function remove(req, res) {
+  try {
+    const alvoId = req.params.id;
+    const solicitante = req.user;
+
+    const alvo = await getById(alvoId);
+    if (!alvo) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    if (alvoId === solicitante.id) {
+      return res
+        .status(403)
+        .json({ error: "Você não pode inativar a si mesmo." });
     }
 
-    await updateSenha(id, String(novaSenha));
-    return res.json({ ok: true, message: "Senha atualizada" });
+    if (isAdm(solicitante)) {
+      // ok
+    } else if (isProfessor(solicitante)) {
+      if ((alvo.role || "").toUpperCase() !== RoleEnum.ALUNO) {
+        return res
+          .status(403)
+          .json({ error: "Professor só pode inativar alunos." });
+      }
+    } else {
+      return res.status(403).json({ error: "Sem permissão." });
+    }
+
+    await softDelete(alvoId);
+    res.json({ ok: true, id: alvoId });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+}
+
+/**
+ * PATCH /usuarios/:id/equipe — (mantido) ADM/PROF definem equipe do aluno
+ */
+async function updateEquipe(req, res) {
+  try {
+    const { id } = req.params;
+    const { equipeId } = req.body;
+
+    if (!equipeId) {
+      return res.status(400).json({ error: "Informe equipeId" });
+    }
+
+    const out = await updateAlunoEquipe(id, equipeId);
+    return res.json(out);
   } catch (e) {
     return res.status(400).json({ error: e.message });
   }
 }
 
-// Exclusão lógica: apenas ADM
-async function remove(req, res) {
+/**
+ * GET /usuarios/por-equipe/:equipeId — (mantido)
+ */
+async function listPorEquipe(req, res) {
   try {
-    const { id } = req.params;
-    if (req.user.role !== RoleEnum.ADM) {
-      return res.status(403).json({ error: "Apenas ADM pode remover" });
-    }
-    await softDelete(id);
-    return res.json({ ok: true, message: "Usuário inativado" });
+    const { equipeId } = req.params;
+    const { ativo } = req.query;
+
+    const out = await listAlunosPorEquipe(equipeId, {
+      ativo: typeof ativo === "undefined" ? undefined : ativo === "true",
+    });
+
+    return res.json(out);
   } catch (e) {
     return res.status(400).json({ error: e.message });
   }
 }
 
 module.exports = {
-  create, // POST /usuarios (ADM)
-  signup, // POST /auth/signup (público -> ALUNO)
-  list, // GET /usuarios (ADM)
-  getOne, // GET /usuarios/:id (ADM ou o próprio)
-  update, // PUT /usuarios/:id (ADM; próprio usuário limitado)
-  changePassword, // PATCH /usuarios/:id/senha (ADM ou o próprio)
-  remove, // DELETE /usuarios/:id (ADM)
+  // painel
+  create,
+  list,
+  getOne,
+  update,
+  changePassword,
+  remove,
+
+  // aluno/equipe (mantidos)
+  updateEquipe,
+  listPorEquipe,
+
+  // público
+  signup,
 };

@@ -1,391 +1,378 @@
-// src/pages/prof/UsuariosAdmin.jsx
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  listarUsuarios,
-  obterUsuario,
-  atualizarUsuario,
-  criarUsuario,
-} from "../../api/usuarios";
+import { useEffect, useMemo, useState } from "react";
+import { listarUsuarios } from "../../api/usuarios";
 import { useAutenticacao } from "../../auth/useAutenticacao";
+import api from "../../api/client";
 import "../../styles/Usuarios.css";
 
 export default function UsuariosAdmin() {
+  // ======= ESTADO =======
   const [usuarios, setUsuarios] = useState([]);
   const [selecionado, setSelecionado] = useState(null);
 
   const [erro, setErro] = useState("");
-  const [sucesso, setSucesso] = useState("");
-  const [salvando, setSalvando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
 
-  const [modalAberto, setModalAberto] = useState(false);
-  const [novo, setNovo] = useState({
-    nome: "",
-    email: "",
-    ativo: false, // agora cadastra INATIVO por padrão
-    role: "PROFESSOR", // menu com PROFESSOR/ALUNO
-    senha: "",
-    confirmarSenha: "",
-  });
+  // Filtros: PROFESSOR | ALUNO | INATIVOS
+  const [filtro, setFiltro] = useState("PROFESSOR");
 
-  // refs para alinhar o card de detalhes
-  const listaRef = useRef(null);
-  const [offsetDetalhes, setOffsetDetalhes] = useState(0);
+  // cache de equipes: { [equipeId]: nome|null }
+  const [equipesCache, setEquipesCache] = useState({});
+  // ids já consultados (evita re-busca infinita)
+  const [consultados, setConsultados] = useState(new Set());
 
+  // ======= CONTEXTO DE AUTENTICAÇÃO =======
   const { usuario } = useAutenticacao();
   const minhaRole = (usuario?.role || "").toUpperCase();
-  const meuId = usuario?.id;
-  const souADM = minhaRole === "ADM";
+  const podeVer = minhaRole === "ADM" || minhaRole === "PROFESSOR";
 
-  // ======= carregar lista =======
+  // Garante Authorization no axios
   useEffect(() => {
-    carregarUsuarios();
-
+    const token = localStorage.getItem("token");
+    if (token) {
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+    }
   }, []);
 
-  async function carregarUsuarios() {
-    setErro("");
+
+  // ======= HELPERS =======
+  function avatarDe(u) {
+    if (u?.foto) return <img src={u.foto} alt={u.nome} />;
+    const letra = (u?.nome || "?").trim().charAt(0).toUpperCase();
+    return <span className="avatar-letra">{letra}</span>;
+  }
+
+  function fmtData(v) {
+    if (!v) return "—";
+    if (typeof v === "object" && v !== null && "_seconds" in v) {
+      const d = new Date(v._seconds * 1000);
+      return d.toLocaleDateString();
+    }
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
+  }
+
+
+  async function inativarUsuario(u) {
+    if (!u?.id) return;
+    const confirma = window.confirm(`Deseja realmente inativar o usuário "${u.nome}"?`);
+    if (!confirma) return;
+
     try {
-      const lista = await listarUsuarios();
-      setUsuarios(
-        (lista || []).map((u) => ({
+      // Chama o endpoint (usa método DELETE ou PUT, conforme teu backend)
+      const resp = await api.delete(`/usuarios/${u.id}`);
+      console.log("Usuário inativado:", resp.data);
+
+      // Atualiza estado local
+      setUsuarios((prev) =>
+        prev.map((item) =>
+          item.id === u.id ? { ...item, ativo: false } : item
+        )
+      );
+      setSelecionado((prev) => (prev ? { ...prev, ativo: false } : prev));
+
+      alert("Usuário inativado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao inativar usuário:", err);
+      alert("Falha ao inativar usuário.");
+    }
+  }
+
+
+  function nomeEquipeDoSelecionado(sel) {
+    if (!sel || sel.role !== "ALUNO") return "—";
+    // prioridade: valor já resolvido no próprio selecionado
+    if (sel.equipeNome) return sel.equipeNome;
+    // depois, cache
+    if (sel.equipeId && typeof equipesCache[sel.equipeId] !== "undefined") {
+      return equipesCache[sel.equipeId] || "—";
+    }
+    // por fim, estado carregando
+    return sel.equipeId ? "Carregando equipe..." : "—";
+  }
+
+  // ======= BUSCA NOME DA EQUIPE (usa /equipes/:id/resumo e aceita {nome}) =======
+  async function resolverNomeEquipe(equipeId) {
+    if (!equipeId) return null;
+
+    // já em cache?
+    if (typeof equipesCache[equipeId] !== "undefined") {
+      return equipesCache[equipeId];
+    }
+    // já consultado? evita loops
+    if (consultados.has(equipeId)) return null;
+
+    // marca como consultado
+    setConsultados((prev) => {
+      const novo = new Set(prev);
+      novo.add(equipeId);
+      return novo;
+    });
+
+    try {
+      const url = `/equipes/${encodeURIComponent(equipeId)}/resumo`;
+      const { data } = await api.get(url);
+      const nome = data?.nome ?? data?.nomeEquipe ?? null;
+      setEquipesCache((prev) => ({ ...prev, [equipeId]: nome ?? null }));
+      return nome ?? null;
+    } catch {
+      // 404/qualquer erro → cacheia null para não repetir
+      setEquipesCache((prev) => ({ ...prev, [equipeId]: null }));
+      return null;
+    }
+  }
+
+  // ======= CARREGAR USUÁRIOS =======
+  useEffect(() => {
+    if (!podeVer) return;
+
+    (async () => {
+      try {
+        setErro("");
+        setCarregando(true);
+
+        // Agora o backend já entrega equipeId diretamente
+        const lista = await listarUsuarios();
+
+        const normalizada = (lista || []).map((u) => ({
           id: u.id,
           nome: u.nome || "",
           email: u.email || "",
           role: (u.role || "").toUpperCase(),
           ativo: Boolean(u.ativo),
-        }))
-      );
-    } catch (e) {
-      console.error(e);
-      setErro("Não foi possível carregar usuários.");
-    }
-  }
+          foto: u.foto || null,
+          criadoEm: u.criadoEm || null,
+          updatedAt: u.updatedAt || null,
+          equipeId: u.equipeId || null, // <=== USANDO APENAS ESSE CAMPO
+          equipeNome: null, // será preenchido depois (se houver)
+        }));
 
-  // grupos
-  const admins = useMemo(
-    () => (souADM ? usuarios.filter((u) => u.role === "ADM" && u.id === meuId) : []),
-    [souADM, usuarios, meuId]
-  );
-  const profs = useMemo(
-    () => usuarios.filter((u) => u.role === "PROFESSOR"),
-    [usuarios]
-  );
-  const alunos = useMemo(
-    () => usuarios.filter((u) => u.role === "ALUNO"),
-    [usuarios]
-  );
+        // ordena alfabeticamente por nome
+        normalizada.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+        setUsuarios(normalizada);
 
-  // ======= alinhar detalhes com o 1º card =======
-  useEffect(() => {
-    function calcularOffset() {
-      if (!listaRef.current) return;
-      // procura o primeiro card-usuario visível dentro da lista
-      const primeiroCard = listaRef.current.querySelector(".card-usuario");
-      if (!primeiroCard) {
-        setOffsetDetalhes(0);
-        return;
+        // Coleta IDs de equipe que precisam de nome (somente alunos, equipeId != null)
+        const idsParaResolver = [
+          ...new Set(
+            normalizada
+              .filter(
+                (u) =>
+                  u.role === "ALUNO" &&
+                  u.equipeId &&
+                  typeof equipesCache[u.equipeId] === "undefined"
+              )
+              .map((u) => u.equipeId)
+          ),
+        ];
+
+        if (idsParaResolver.length > 0) {
+          const pares = await Promise.all(
+            idsParaResolver.map(async (id) => ({ id, nome: await resolverNomeEquipe(id) }))
+          );
+
+          const novos = {};
+          pares.forEach(({ id, nome }) => (novos[id] = nome ?? null));
+
+          if (Object.keys(novos).length > 0) {
+            // atualiza cache
+            setEquipesCache((prev) => ({ ...prev, ...novos }));
+            // propaga para a lista
+            setUsuarios((prev) =>
+              prev.map((u) =>
+                u.equipeId && typeof novos[u.equipeId] !== "undefined"
+                  ? { ...u, equipeNome: novos[u.equipeId] }
+                  : u
+              )
+            );
+            // propaga para o selecionado
+            setSelecionado((prev) =>
+              prev &&
+                prev.equipeId &&
+                typeof novos[prev.equipeId] !== "undefined"
+                ? { ...prev, equipeNome: novos[prev.equipeId] }
+                : prev
+            );
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        setErro("Não foi possível carregar usuários.");
+      } finally {
+        setCarregando(false);
       }
-      const listaTop = listaRef.current.getBoundingClientRect().top + window.scrollY;
-      const cardTop = primeiroCard.getBoundingClientRect().top + window.scrollY;
-      const gap = 0; // ajuste fino se quiser (px)
-      const novoOffset = Math.max(0, Math.round(cardTop - listaTop - gap));
-      setOffsetDetalhes(novoOffset);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [podeVer]);
+
+  // ======= FILTRO =======
+  const usuariosFiltrados = useMemo(() => {
+    const base = [...usuarios].sort((a, b) =>
+      (a.nome || "").localeCompare(b.nome || "")
+    );
+
+    if (filtro === "PROFESSOR") {
+      return base.filter((u) => u.role === "PROFESSOR" && u.ativo === true);
     }
-
-    calcularOffset();
-    window.addEventListener("resize", calcularOffset);
-    return () => window.removeEventListener("resize", calcularOffset);
-  }, [usuarios]);
-
-  // ======= seleção / edição =======
-  async function handleSelecionar(id) {
-    setErro("");
-    setSucesso("");
-    try {
-      const u = await obterUsuario(id);
-      setSelecionado({
-        id: u.id,
-        nome: u.nome || "",
-        email: u.email || "",
-        ativo: Boolean(u.ativo),
-      });
-    } catch (e) {
-      console.error(e);
-      setErro("Falha ao carregar detalhes do usuário.");
+    if (filtro === "ALUNO") {
+      return base.filter((u) => u.role === "ALUNO" && u.ativo === true);
     }
-  }
-
-  async function handleSalvar(e) {
-    e.preventDefault();
-    if (!selecionado?.id) return;
-
-    setErro("");
-    setSucesso("");
-    setSalvando(true);
-    try {
-      const atualizado = await atualizarUsuario(selecionado.id, {
-        nome: selecionado.nome,
-        email: selecionado.email,
-        ativo: selecionado.ativo,
-      });
-      setSucesso("Usuário atualizado com sucesso!");
-      setUsuarios((prev) =>
-        prev.map((u) => (u.id === atualizado.id ? { ...u, ...atualizado } : u))
-      );
-    } catch (e) {
-      console.error(e);
-      setErro("Falha ao salvar alterações.");
-    } finally {
-      setSalvando(false);
+    if (filtro === "INATIVOS") {
+      return base.filter((u) => u.ativo === false);
     }
-  }
+    return base;
+  }, [usuarios, filtro]);
 
-  // ======= criação =======
-  function abrirModalNovo() {
-    setErro("");
-    setSucesso("");
-    setNovo({
-      nome: "",
-      email: "",
-      ativo: false, // inativo por padrão
-      role: "PROFESSOR",
-      senha: "",
-      confirmarSenha: "",
-    });
-    setModalAberto(true);
-  }
-
-  function fecharModal() {
-    setModalAberto(false);
-  }
-
-  async function handleCriarNovo(e) {
-    e.preventDefault();
-    setErro("");
-    setSucesso("");
-
-    if (!novo.nome.trim() || !novo.email.trim()) {
-      setErro("Informe nome e e-mail.");
-      return;
-    }
-    if (novo.senha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
-    if (novo.senha !== novo.confirmarSenha) {
-      setErro("As senhas não conferem.");
-      return;
-    }
-
-    try {
-      setSalvando(true);
-      await criarUsuario({
-        nome: novo.nome.trim(),
-        email: novo.email.trim().toLowerCase(),
-        senha: novo.senha,
-        ativo: novo.ativo,            // inativo por padrão
-        role: novo.role,              // PROFESSOR ou ALUNO
-      });
-      setSucesso("Usuário criado com sucesso!");
-      fecharModal();
-      await carregarUsuarios();
-    } catch (e) {
-      console.error(e);
-      setErro("Falha ao criar usuário.");
-    } finally {
-      setSalvando(false);
-    }
-  }
-
-  // ======= UI =======
-  function Grupo({ titulo, lista }) {
+  if (!podeVer) {
     return (
-      <div className="grupo">
-        <h2 className="grupo-titulo">{titulo}</h2>
-        {lista.length === 0 ? (
-          <p className="vazio">Nenhum usuário</p>
-        ) : (
-          lista.map((u) => (
-            <div
-              key={u.id}
-              className={`card-usuario ${selecionado?.id === u.id ? "ativo" : ""}`}
-              onClick={() => handleSelecionar(u.id)}
-            >
-              <div className="card-info">
-                <div className="card-nome">{u.nome}</div>
-                <div className="card-email">{u.email}</div>
-              </div>
-              <span
-                className={`status ${u.ativo ? "ativo" : "inativo"}`}
-                title={u.ativo ? "Ativo" : "Inativo"}
-              >
-                {u.ativo ? "●" : "○"}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
+      <main className="usuarios-page">
+        <div className="alert-erro">Acesso não permitido.</div>
+      </main>
     );
   }
 
   return (
-    <main className="usuarios-container">
-      {/* COLUNA ESQUERDA — Listas */}
-      <div className="usuarios-lista" ref={listaRef}>
-        <h1 className="lista-titulo">Usuários</h1>
-        {souADM && <Grupo titulo="Administradores" lista={admins} />}
-        <Grupo titulo="Professores" lista={profs} />
-        <Grupo titulo="Alunos" lista={alunos} />
-      </div>
-
-      {/* COLUNA DIREITA — Detalhes + Botão Novo */}
-      <div className="usuarios-detalhes" style={{ marginTop: offsetDetalhes }}>
-        <div className="detalhes-header">
-          <h2>Detalhes</h2>
-          <button className="btn btn-primary btn-sm" onClick={abrirModalNovo}>
-            + Novo Usuário
-          </button>
+    <main className="usuarios-page">
+      {/* HEADER: botão + filtros */}
+      <header className="usuarios-header">
+        <div className="titulo-area">
+          <button className="btn btn-primary">➕ Cadastrar novo usuário</button>
         </div>
 
-        {!selecionado ? (
-          <p className="vazio">Selecione um usuário à esquerda.</p>
-        ) : (
-          <form onSubmit={handleSalvar}>
-            <div className="form-field">
-              <label>Nome</label>
-              <input
-                type="text"
-                value={selecionado.nome}
-                onChange={(e) =>
-                  setSelecionado({ ...selecionado, nome: e.target.value })
-                }
-              />
-            </div>
+        <div className="tabs" role="tablist" aria-label="Filtros de usuários">
+          <button
+            className={`tab-chip ${filtro === "PROFESSOR" ? "active" : ""}`}
+            onClick={() => setFiltro("PROFESSOR")}
+            role="tab"
+            aria-selected={filtro === "PROFESSOR"}
+          >
+            Professores
+          </button>
+          <button
+            className={`tab-chip ${filtro === "ALUNO" ? "active" : ""}`}
+            onClick={() => setFiltro("ALUNO")}
+            role="tab"
+            aria-selected={filtro === "ALUNO"}
+          >
+            Alunos
+          </button>
+          <button
+            className={`tab-chip ${filtro === "INATIVOS" ? "active" : ""}`}
+            onClick={() => setFiltro("INATIVOS")}
+            role="tab"
+            aria-selected={filtro === "INATIVOS"}
+          >
+            Usuários Inativos
+          </button>
+        </div>
+      </header>
 
-            <div className="form-field">
-              <label>Email</label>
-              <input
-                type="email"
-                value={selecionado.email}
-                onChange={(e) =>
-                  setSelecionado({ ...selecionado, email: e.target.value })
-                }
-              />
-            </div>
+      {erro && <div className="alert-erro">{erro}</div>}
+      {carregando && <p>Carregando...</p>}
 
-            <div className="form-field">
-              <label>Status</label>
-              <select
-                value={String(!!selecionado.ativo)}
-                onChange={(e) =>
-                  setSelecionado({
-                    ...selecionado,
-                    ativo: e.target.value === "true",
-                  })
-                }
-              >
-                <option value="true">Ativo</option>
-                <option value="false">Inativo</option>
-              </select>
-            </div>
+      {!carregando && (
+        <div className="usuarios-layout">
+          {/* COLUNA ESQUERDA — LISTA (sem o título "Lista") */}
+          <section className="card card-elev usuarios-lista">
+            {usuariosFiltrados.length === 0 ? (
+              <div className="vazio">Nenhum usuário neste filtro.</div>
+            ) : (
+              <ul className="lista-cards-usuarios">
+                {usuariosFiltrados.map((u) => (
+                  <li
+                    key={u.id}
+                    className={`user-card ${selecionado?.id === u.id ? "ativo" : ""}`}
+                    onClick={() => setSelecionado(u)}
+                  >
+                    <div className="avatar">{avatarDe(u)}</div>
 
-            {erro && <div className="alert erro">{erro}</div>}
-            {sucesso && <div className="alert sucesso">{sucesso}</div>}
+                    <div className="user-info">
+                      <strong className="user-nome">{u.nome}</strong>
+                      <span className="user-email">{u.email}</span>
 
-            <button type="submit" className="btn btn-primary" disabled={salvando}>
-              {salvando ? "Salvando..." : "Salvar"}
-            </button>
-          </form>
-        )}
-      </div>
+                      {/* Se for aluno, mostra nome da equipe */}
+                      {u.role === "ALUNO" && (
+                        <span className="user-equipe">
+                          {
+                            // prioridade: equipeNome resolvido
+                            u.equipeNome ??
+                            // depois: cache
+                            (u.equipeId &&
+                              typeof equipesCache[u.equipeId] !== "undefined"
+                              ? equipesCache[u.equipeId] || "—"
+                              : // se tem id e ainda não veio do cache → carregando
+                              u.equipeId
+                                ? "Carregando equipe..."
+                                : // sem equipe
+                                "—")
+                          }
+                        </span>
+                      )}
+                    </div>
 
-      {/* ===== MODAL NOVO USUÁRIO ===== */}
-      {modalAberto && (
-        <div className="modal-overlay" onClick={fecharModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-head">
-              <h3>Novo Usuário</h3>
-              <button className="btn-close" onClick={fecharModal} aria-label="Fechar">
-                ×
-              </button>
-            </div>
+                    <div className="user-badges">
+                      <span
+                        className={`role-pill ${u.role === "ADM" ? "adm" : u.role === "PROFESSOR" ? "prof" : "aluno"
+                          }`}
+                      >
+                        {u.role}
+                      </span>
+                      <span
+                        className={`status-pill ${u.ativo ? "ativo" : "inativo"}`}
+                        title={u.ativo ? "Ativo" : "Inativo"}
+                      >
+                        {u.ativo ? "Ativo" : "Inativo"}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-            <form onSubmit={handleCriarNovo}>
-              <div className="form-field">
-                <label>Nome</label>
-                <input
-                  type="text"
-                  value={novo.nome}
-                  onChange={(e) => setNovo({ ...novo, nome: e.target.value })}
-                  required
-                />
-              </div>
+          {/* COLUNA DIREITA — DETALHES (mesma altura visual) */}
+          <aside className="card card-elev usuarios-detalhes">
+            {!selecionado ? (
+              <div className="vazio">Selecione um usuário na lista.</div>
+            ) : (
+              <>
+                <div className="detalhes-topo">
+                  <div className="avatar grande">{avatarDe(selecionado)}</div>
+                  <div className="topo-textos">
+                    <h2 className="det-nome">{selecionado.nome}</h2>
+                    <p className="det-email">{selecionado.email}</p>
+                  </div>
+                </div>
 
-              <div className="form-field">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={novo.email}
-                  onChange={(e) => setNovo({ ...novo, email: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="detalhe-campo">
+                  <span className="campo-label">Perfil</span>
+                  <p className="campo-valor">{selecionado.role || "—"}</p>
+                </div>
 
-              {/* Role: apenas PROFESSOR ou ALUNO (para ADM e Professor) */}
-              <div className="form-field">
-                <label>Perfil</label>
-                <select
-                  value={novo.role}
-                  onChange={(e) => setNovo({ ...novo, role: e.target.value })}
-                >
-                  <option value="PROFESSOR">PROFESSOR</option>
-                  <option value="ALUNO">ALUNO</option>
-                </select>
-              </div>
+                <div className="detalhe-campo">
+                  <span className="campo-label">Equipe (se aluno)</span>
+                  <p className="campo-valor">{nomeEquipeDoSelecionado(selecionado)}</p>
+                </div>
 
+                <div className="detalhe-campo">
+                  <span className="campo-label">Criado em</span>
+                  <p className="campo-valor">{fmtData(selecionado.criadoEm)}</p>
+                </div>
 
-              <div className="form-field">
-                <label>Status</label>
-                <select
-                  value={String(novo.ativo)}
-                  onChange={(e) => setNovo({ ...novo, ativo: e.target.value === "true" })}
-                >
-                  <option value="true">Ativo</option>
-                  <option value="false">Inativo</option>
-                </select>
-              </div>
+                <div className="detalhe-campo">
+                  <span className="campo-label">Atualizado em</span>
+                  <p className="campo-valor">{fmtData(selecionado.updatedAt)}</p>
+                </div>
 
-              <div className="form-field">
-                <label>Senha</label>
-                <input
-                  type="password"
-                  value={novo.senha}
-                  onChange={(e) => setNovo({ ...novo, senha: e.target.value })}
-                  placeholder="Mínimo 6 caracteres"
-                  required
-                />
-              </div>
-
-              <div className="form-field">
-                <label>Confirmar Senha</label>
-                <input
-                  type="password"
-                  value={novo.confirmarSenha}
-                  onChange={(e) =>
-                    setNovo({ ...novo, confirmarSenha: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              {erro && <div className="alert erro">{erro}</div>}
-              {sucesso && <div className="alert sucesso">{sucesso}</div>}
-
-              <button type="submit" className="btn btn-primary" disabled={salvando}>
-                {salvando ? "Criando..." : "Criar"}
-              </button>
-            </form>
-          </div>
+                <div className="btn-row">
+                  <button className="btn btn-primary">✏️ Editar</button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => inativarUsuario(selecionado)}>
+                    🗑️ Inativar
+                  </button>
+                </div>
+              </>
+            )}
+          </aside>
         </div>
       )}
     </main>

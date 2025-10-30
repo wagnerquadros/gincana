@@ -1,4 +1,4 @@
-const { listAlunos, getAlunoById } = require("../services/usuariosService");
+const { listAlunos, getAlunoById, updateAlunoEquipe, listAlunosPorEquipe } = require("../services/usuariosService");
 
 async function list(req, res) {
   try {
@@ -24,4 +24,41 @@ async function getOne(req, res) {
   }
 }
 
-module.exports = { list, getOne };
+// PATCH /alunos/:id/equipe  (ADM e PROFESSOR)
+async function updateEquipe(req, res) {
+  try {
+    const { id } = req.params;
+    const { equipeId } = req.body;
+
+    if (!equipeId) {
+      return res.status(400).json({ error: "Informe equipeId" });
+    }
+
+    const out = await updateAlunoEquipe(id, equipeId);
+    return res.json(out);
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
+}
+
+// GET /alunos/por-equipe/:equipeId  (ADM e PROFESSOR)
+async function listPorEquipe(req, res) {
+  try {
+    const { equipeId } = req.params;
+    const { ativo } = req.query;
+
+    const out = await listAlunosPorEquipe(equipeId, {
+      ativo: typeof ativo === "undefined" ? undefined : ativo === "true",
+    });
+
+    return res.json(out);
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
+}
+
+
+module.exports = {
+  list, getOne, updateEquipe,
+  listPorEquipe,
+};

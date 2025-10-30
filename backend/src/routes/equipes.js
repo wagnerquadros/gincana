@@ -8,6 +8,7 @@ const {
   atualizarEquipeController,
   deletarEquipeController,
   listarEquipesPorGincanaController,
+  obterEquipeResumoController,
 } = require("../controllers/equipeController");
 
 const {
@@ -32,6 +33,13 @@ router.get(
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
   listarEquipesController
 );
+
+router.get(
+  "/:id/resumo",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  obterEquipeResumoController
+);
+
 router.get(
   "/:id",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
@@ -54,5 +62,7 @@ router.get(
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
   listarEquipesPorGincanaController
 );
+
+
 
 module.exports = router;
