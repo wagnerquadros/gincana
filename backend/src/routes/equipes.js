@@ -74,7 +74,7 @@ router.get(
 // Contagem de membros da equipe (com totais ativos/inativos)
 router.get(
   "/:id/membros/contagem",
-  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
   contagemMembrosController
 );
 

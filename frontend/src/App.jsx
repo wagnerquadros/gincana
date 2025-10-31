@@ -1,4 +1,3 @@
-// src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProvedorAutenticacao } from "./auth/AuthProvider";
 
@@ -6,8 +5,11 @@ import Login from "./pages/Login";
 import CadastroAluno from "./pages/CadastroAluno";
 
 import ProfessorLayout from "./layouts/ProfessorLayout";
+import AlunoLayout from "./layouts/AlunoLayout";
+
 import RotaPrivada from "./auth/RotaPrivada";
 import RotaSomenteStaff from "./auth/RotaSomenteStaff";
+import RotaSomenteAluno from "./auth/RotaSomenteAluno";
 
 import DashboardProf from "./pages/prof/DashboardProf.jsx";
 import GincanaProf from "./pages/prof/GincanaProf";
@@ -15,6 +17,13 @@ import EquipesProf from "./pages/prof/EquipesProf";
 import AtividadesProf from "./pages/prof/AtividadesProf";
 import UsuariosAdmin from "./pages/prof/UsuariosAdmin";
 import MeuPerfil from "./pages/prof/MeuPerfil";
+
+// páginas do aluno
+import DashboardAluno from "./pages/aluno/DashboardAluno";
+import GincanaAluno from "./pages/aluno/GincanaAluno";
+import MinhaEquipe from "./pages/aluno/MinhaEquipe";
+import AtividadesAluno from "./pages/aluno/AtividadesAluno";
+import MeuPerfilAluno from "./pages/aluno/MeuPerfilAluno";
 
 export default function App() {
   return (
@@ -34,7 +43,7 @@ export default function App() {
               </RotaPrivada>
             }
           >
-            {/* ADM e PROFESSOR têm o mesmo acesso */}
+            {/* Rotas comuns (PROFESSOR e ADM) */}
             <Route index element={<DashboardProf />} />
             <Route path="dashboard" element={<DashboardProf />} />
             <Route path="gincana" element={<GincanaProf />} />
@@ -42,7 +51,7 @@ export default function App() {
             <Route path="atividades" element={<AtividadesProf />} />
             <Route path="meu-perfil" element={<MeuPerfil />} />
 
-            {/* Staff (ADM ou Professor) – sua rota já libera ambos */}
+            {/* Somente STAFF/ADM */}
             <Route
               path="usuarios"
               element={
@@ -52,9 +61,32 @@ export default function App() {
               }
             />
 
+            {/* Fallback interno de /prof */}
             <Route path="*" element={<Navigate to="/prof/dashboard" replace />} />
           </Route>
 
+          {/* Painel do aluno */}
+          <Route
+            path="/aluno"
+            element={
+              <RotaPrivada>
+                <RotaSomenteAluno>
+                  <AlunoLayout />
+                </RotaSomenteAluno>
+              </RotaPrivada>
+            }
+          >
+            <Route index element={<DashboardAluno />} />
+            <Route path="dashboard" element={<DashboardAluno />} />
+            <Route path="gincana" element={<GincanaAluno />} />
+            <Route path="minha-equipe" element={<MinhaEquipe />} />
+            <Route path="atividades" element={<AtividadesAluno />} />
+            <Route path="perfil" element={<MeuPerfilAluno />} />
+
+            <Route path="*" element={<Navigate to="/aluno/dashboard" replace />} />
+          </Route>
+
+          {/* Fallback global */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -28,18 +28,26 @@ export function ProvedorAutenticacao({ children }) {
         setCarregando(false);
     }, []);
 
-    // payload que você mostrou:
-    // { token, user: { id, email, nome, role } }
     async function entrar(email, senha) {
         const { data } = await api.post("/auth/login", { email, password: senha });
         const token = data?.token;
-        const userRaw = data?.user ?? data?.usuario ?? null;
-
         if (token) localStorage.setItem("token", token);
 
-        const userNorm = normalizarUsuario(userRaw);
+        let bruto = data?.user ?? data?.usuario ?? null;
+        if (!bruto) {
+            try {
+                const me = await api.get("/auth/me");
+                bruto = me.data;
+            } catch {
+                bruto = data ?? null;
+            }
+        }
+
+        const userNorm = normalizarUsuario(bruto);
         localStorage.setItem("usuario", JSON.stringify(userNorm));
         setUsuario(userNorm);
+
+        return userNorm; // <- IMPORTANTE: retornar o usuário!
     }
 
     function sair() {
