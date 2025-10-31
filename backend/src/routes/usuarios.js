@@ -1,13 +1,10 @@
-// src/routes/usuarios.js
 const express = require("express");
 const router = express.Router();
 
-const {
-  authMiddleware,
-  authorizeRoles,
-} = require("../middlewares/authMiddleware");
+const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware");
 const RoleEnum = require("../models/enums/RoleEnum");
 const ctrl = require("../controllers/usuariosController");
+const upload = require("../middlewares/uploadMiddleware");
 
 // 🔐 Todas as rotas de /usuarios exigem login
 router.use(authMiddleware);
@@ -25,6 +22,14 @@ router.get(
   ctrl.getOne
 );
 
+/** Upload de foto — todos logados; regra fina no controller (aluno só o próprio) */
+router.post(
+  "/:id/foto",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  upload.single("foto"),
+  ctrl.uploadFoto
+);
+
 /** Atualizar — ADM/PROF/ALUNO (regras por role no controller) */
 router.put(
   "/:id",
@@ -33,7 +38,13 @@ router.put(
 );
 
 /** Trocar senha — ADM/PROF/ALUNO (ALUNO só a própria) */
+/** Trocar senha — aceita PATCH e POST (para compat com front) */
 router.patch(
+  "/:id/senha",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  ctrl.changePassword
+);
+router.post(
   "/:id/senha",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
   ctrl.changePassword

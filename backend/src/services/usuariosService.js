@@ -1,6 +1,6 @@
 // src/services/usuariosService.js
 const { db } = require("../../firebase");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const RoleEnum = require("../models/enums/RoleEnum");
 
 const COLL = "usuarios";
@@ -202,6 +202,26 @@ async function listAlunosPorEquipe(equipeId, { ativo } = {}) {
 }
 
 
+async function verificarSenhaAtual(id, senhaAtual) {
+  const u = await getById(id);
+  if (!u) return false;
+  const hash = u.senha || "";
+  if (!hash) return false;
+  return await bcrypt.compare(String(senhaAtual), hash);
+}
+
+async function updateSenha(id, senhaNova) {
+  if (!senhaNova || String(senhaNova).length < 6) {
+    throw new Error("A senha deve ter pelo menos 6 caracteres");
+  }
+  const hash = await bcrypt.hash(String(senhaNova), 12);
+  await db.collection(COLL).doc(id).set(
+    { senha: hash, updatedAt: new Date() },
+    { merge: true }
+  );
+  return true;
+}
+
 module.exports = {
   getById,
   getByEmail,
@@ -214,4 +234,5 @@ module.exports = {
   getAlunoById,
   updateAlunoEquipe,
   listAlunosPorEquipe,
+  verificarSenhaAtual,
 };

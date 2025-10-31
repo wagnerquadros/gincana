@@ -21,8 +21,14 @@ function authMiddleware(req, res, next) {
   jwt.verify(token, SECRET, (err, decoded) => {
     if (err)
       return res.status(403).json({ error: "Token inválido ou expirado" });
-    req.user = decoded; // { id, username, email, role }
+
+    req.user = decoded || {}; // exemplo: { uid, email, role, ... }
     req.token = token;
+
+    // ✅ Normaliza o campo id (para garantir que sempre exista req.user.id)
+    req.user.id =
+      decoded.id || decoded.uid || decoded.userId || req.user.id || null;
+
     next();
   });
 }

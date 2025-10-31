@@ -1,6 +1,6 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ProvedorAutenticacao } from "./auth/useAutenticacao";
+import { ProvedorAutenticacao } from "./auth/AuthProvider";
 
 import Login from "./pages/Login";
 import CadastroAluno from "./pages/CadastroAluno";
@@ -14,7 +14,7 @@ import GincanaProf from "./pages/prof/GincanaProf";
 import EquipesProf from "./pages/prof/EquipesProf";
 import AtividadesProf from "./pages/prof/AtividadesProf";
 import UsuariosAdmin from "./pages/prof/UsuariosAdmin";
-
+import MeuPerfil from "./pages/prof/MeuPerfil";
 
 export default function App() {
   return (
@@ -34,7 +34,15 @@ export default function App() {
               </RotaPrivada>
             }
           >
-            {/* Acesso para ADM e PROFESSOR */}
+            {/* ADM e PROFESSOR têm o mesmo acesso */}
+            <Route index element={<DashboardProf />} />
+            <Route path="dashboard" element={<DashboardProf />} />
+            <Route path="gincana" element={<GincanaProf />} />
+            <Route path="equipes" element={<EquipesProf />} />
+            <Route path="atividades" element={<AtividadesProf />} />
+            <Route path="meu-perfil" element={<MeuPerfil />} />
+
+            {/* Staff (ADM ou Professor) – sua rota já libera ambos */}
             <Route
               path="usuarios"
               element={
@@ -44,20 +52,9 @@ export default function App() {
               }
             />
 
-            {/* Rotas comuns */}
-            <Route path="dashboard" element={<DashboardProf />} />
-            <Route path="gincana" element={<GincanaProf />} />
-            <Route path="equipes" element={<EquipesProf />} />
-            <Route path="atividades" element={<AtividadesProf />} />
-
-            {/* Rota padrão ao entrar em /prof */}
-            <Route index element={<DashboardProf />} />
-
-            {/* Fallback interno de /prof */}
             <Route path="*" element={<Navigate to="/prof/dashboard" replace />} />
           </Route>
 
-          {/* Fallback global */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

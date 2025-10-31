@@ -52,7 +52,7 @@ export default function NavbarProfessor() {
           <NavLink to="/prof/atividades" className={linkClass}>
             Atividades
           </NavLink>
-          <NavLink to="/prof/perfil" className={linkClass}>
+          <NavLink to="/prof/meu-perfil" className={linkClass}>
             Meu Perfil
           </NavLink>
         </nav>
@@ -97,7 +97,7 @@ export default function NavbarProfessor() {
         <NavLink to="/prof/atividades" className={linkClass} onClick={() => setMenuAberto(false)}>
           Atividades
         </NavLink>
-        <NavLink to="/prof/perfil" className={linkClass} onClick={() => setMenuAberto(false)}>
+        <NavLink to="/prof/meu-perfil" className={linkClass} onClick={() => setMenuAberto(false)}>
           Meu Perfil
         </NavLink>
         <button className="btn-sair-mobile" onClick={() => sair?.()}>
