@@ -24,6 +24,7 @@ import GincanaAluno from "./pages/aluno/GincanaAluno";
 import MinhaEquipe from "./pages/aluno/MinhaEquipe";
 import AtividadesAluno from "./pages/aluno/AtividadesAluno";
 import MeuPerfilAluno from "./pages/aluno/MeuPerfilAluno";
+import RankingAluno from "./pages/aluno/RankingAluno";
 
 export default function App() {
   return (
@@ -79,6 +80,7 @@ export default function App() {
             <Route index element={<DashboardAluno />} />
             <Route path="dashboard" element={<DashboardAluno />} />
             <Route path="gincana" element={<GincanaAluno />} />
+            <Route path="/aluno/ranking" element={<RankingAluno />} />
             <Route path="minha-equipe" element={<MinhaEquipe />} />
             <Route path="atividades" element={<AtividadesAluno />} />
             <Route path="perfil" element={<MeuPerfilAluno />} />
