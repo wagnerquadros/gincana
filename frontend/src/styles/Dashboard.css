@@ -144,3 +144,51 @@
     text-align: left;
   }
 }
+
+/* Ícones e títulos destacados */
+.lista-titulo-icone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #111827;
+}
+
+.lista-titulo-icone .emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Cores sutis por tipo de lista */
+.card[destaque="andamento"],
+.card.andamento {
+  border-left: 6px solid var(--green, #10b981);
+}
+
+.card[destaque="agendada"],
+.card.agendada {
+  border-left: 6px solid var(--orange, #f59e0b);
+}
+
+/* Margem entre itens */
+.list .items {
+  margin-top: 12px;
+}
+
+.ranking-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  color: #111827;
+  border-bottom: 2px solid var(--line, #e5e7eb);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.ranking-titulo .emoji {
+  font-size: 22px;
+  line-height: 1;
+}
