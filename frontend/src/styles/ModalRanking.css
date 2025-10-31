@@ -1,0 +1,203 @@
+/* Overlay */
+.mr-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.45);
+    display: grid;
+    place-items: center;
+    z-index: 999;
+}
+
+/* CARD BEM LARGO */
+.mr-modal-card {
+    width: min(1100px, 96vw);
+    /* largo para enxergar bem */
+    max-height: 88vh;
+    background: var(--card, #fff);
+    border: 1px solid var(--line, #e5e7eb);
+    border-radius: 14px;
+    box-shadow: var(--shadow, 0 12px 32px rgba(2, 6, 23, .18));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Cabeçalho */
+.mr-modal-head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line, #e5e7eb);
+    background: #fff;
+}
+
+.mr-title {
+    margin: 0;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--text, #111827);
+}
+
+.mr-sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.mr-btn-close {
+    border: 1px solid var(--line, #e5e7eb);
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+/* Corpo */
+.mr-modal-body {
+    padding: 0;
+    overflow: hidden;
+    /* scroll só na área da tabela */
+}
+
+.mr-loading,
+.mr-vazio,
+.mr-alert-erro {
+    margin: 16px;
+}
+
+.mr-alert-erro {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #7f1d1d;
+    padding: 10px 12px;
+    border-radius: 10px;
+}
+
+/* Área que rola */
+.mr-table-scroll {
+    max-height: 62vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* sem scroll horizontal */
+    border-top: 1px solid var(--line, #e5e7eb);
+}
+
+/* Tabela larga */
+.mr-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+    /* deixa largo para ver tudo com folga */
+    background: #fff;
+    table-layout: fixed;
+    /* fixa colunas, evita estourar */
+    word-break: break-word;
+}
+
+/* Células */
+.mr-table th,
+.mr-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--line, #e5e7eb);
+    font-size: 14px;
+    color: var(--text, #111827);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Cabeçalho sticky */
+.mr-table thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 2;
+    color: #374151;
+}
+
+/* Alinhamentos */
+.left {
+    text-align: left;
+}
+
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+}
+
+.strong {
+    font-weight: 700;
+}
+
+/* Hover padrão nas demais linhas */
+.mr-row:hover {
+    background: #fafafa;
+}
+
+/* Cores por colocação (linha inteira) */
+.mr-row-gold {
+    background: #fff8dc;
+    /* dourado claro */
+    border-left: 6px solid #d4af37;
+    /* dourado */
+}
+
+.mr-row-silver {
+    background: #f5f7fa;
+    /* prata claro */
+    border-left: 6px solid #c0c0c0;
+    /* prata */
+}
+
+.mr-row-bronze {
+    background: #fff1e6;
+    /* bronze claro */
+    border-left: 6px solid #cd7f32;
+    /* bronze */
+}
+
+/* “Medalha” da coluna Pos (centralizada no TD por classe .center) */
+.mr-pos {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    font-weight: 800;
+}
+
+.mr-pos.gold {
+    background: #fef3c7;
+    border-color: #fde68a;
+}
+
+.mr-pos.silver {
+    background: #f3f4f6;
+}
+
+.mr-pos.bronze {
+    background: #ffe9c7;
+    border-color: #f3bb84;
+}
+
+/* Equipe (nome) */
+.mr-name {
+    font-weight: 600;
+}
+
+/* Rodapé */
+.mr-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line, #e5e7eb);
+    background: #fff;
+}

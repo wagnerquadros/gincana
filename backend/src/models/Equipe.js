@@ -1,3 +1,4 @@
+// src/models/Equipe.js
 class Equipe {
   id;
   gincanaId;
@@ -7,14 +8,24 @@ class Equipe {
   criadoEm;
   atualizadoEm;
 
-  constructor(id, gincanaId, nome, ativo = true, pontuacoesIds = []) {
+  // 👇 adiciona criadoEm/atualizadoEm como params opcionais
+  constructor(
+    id,
+    gincanaId,
+    nome,
+    ativo = true,
+    pontuacoesIds = [],
+    criadoEm = null,
+    atualizadoEm = null
+  ) {
     this.id = id;
     this.gincanaId = gincanaId;
     this.nome = nome;
     this.ativo = !!ativo;
     this.pontuacoesIds = Array.isArray(pontuacoesIds) ? pontuacoesIds : [];
-    this.criadoEm = new Date();
-    this.atualizadoEm = new Date();
+    // 👇 usa o valor vindo do BD; se não houver, mantém null (não inventa data agora)
+    this.criadoEm = criadoEm || null;
+    this.atualizadoEm = atualizadoEm || null;
   }
 
   toObject() {
@@ -32,12 +43,20 @@ class Equipe {
   static fromDoc(doc) {
     if (!doc.exists) return null;
     const d = doc.data();
+
+    const criadoEm =
+      d.criadoEm?.toDate ? d.criadoEm.toDate() : d.criadoEm ?? null;
+    const atualizadoEm =
+      d.atualizadoEm?.toDate ? d.atualizadoEm.toDate() : d.atualizadoEm ?? null;
+
     return new Equipe(
       doc.id,
       d.gincanaId,
       d.nome,
       d.ativo,
-      d.pontuacoesIds || []
+      d.pontuacoesIds || [],
+      criadoEm,
+      atualizadoEm
     );
   }
 }

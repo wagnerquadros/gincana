@@ -4,6 +4,9 @@ const Pontuacao = require("../models/Pontuacao");
 // helper: número seguro
 const num = (v, def = 0) => (typeof v === "number" ? v : def);
 
+// Soma segura
+const soma = (arr) => arr.reduce((acc, n) => acc + (Number(n) || 0), 0);
+
 /**
  * Encerra atividade e gera pontuações por classificação.
  * Agora: cria documentos em "pontuacoes" e guarda apenas os IDs em `equipes.pontuacoesIds`.
@@ -185,9 +188,73 @@ async function rankingDaAtividade(atividadeId, { incluirEquipe = true } = {}) {
   );
 }
 
+// 🔹 Pontuação acumulada de uma equipe dentro de UMA gincana
+async function pontuacaoAcumuladaEquipeNaGincana(gincanaId, equipeId) {
+  if (!gincanaId || !gincanaId.trim()) throw new Error("gincanaId é obrigatório");
+  if (!equipeId || !equipeId.trim()) throw new Error("equipeId é obrigatório");
+
+  // Buscar atividades da gincana
+  const atvsSnap = await db
+    .collection("atividades")
+    .where("gincanaId", "==", gincanaId.trim())
+    .get();
+
+  const atividadeIds = atvsSnap.docs.map((d) => d.id);
+  if (atividadeIds.length === 0) {
+    return {
+      gincanaId,
+      equipeId,
+      total: 0,
+      pontos: 0,
+      bonus: 0,
+      penalidades: 0,
+      quantidadePontuacoes: 0,
+      detalhes: [],
+    };
+  }
+
+  // Buscar pontuações da equipe (UM único where → sem índice composto)
+  const pontSnap = await db
+    .collection("pontuacoes")
+    .where("equipeId", "==", equipeId.trim())
+    .get();
+
+  // Filtrar apenas as pontuações cuja atividade pertença à gincana
+  const setAtividades = new Set(atividadeIds);
+  const itens = pontSnap.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() }))
+    .filter((p) => setAtividades.has(p.atividadeId));
+
+  const pontos = soma(itens.map((p) => p.pontosObtidos));
+  const bonus = soma(itens.map((p) => p.bonus));
+  const penal = soma(itens.map((p) => p.penalidade));
+  const total = pontos + bonus - penal;
+
+  return {
+    gincanaId,
+    equipeId,
+    total,
+    pontos,
+    bonus,
+    penalidades: penal,
+    quantidadePontuacoes: itens.length,
+    detalhes: itens.map((p) => ({
+      pontuacaoId: p.id,
+      atividadeId: p.atividadeId,
+      pontosObtidos: p.pontosObtidos || 0,
+      bonus: p.bonus || 0,
+      penalidade: p.penalidade || 0,
+      criadoEm: p.criadoEm || null,
+    })),
+  };
+}
+
+
+
 
 module.exports = {
   encerrarAtividadeEGerarPontuacoes,
   listarPontuacoesPorAtividade,
   rankingDaAtividade,
+  pontuacaoAcumuladaEquipeNaGincana,
 };

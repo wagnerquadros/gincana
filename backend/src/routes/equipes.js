@@ -9,6 +9,8 @@ const {
   deletarEquipeController,
   listarEquipesPorGincanaController,
   obterEquipeResumoController,
+  pontuacaoEquipeNaGincanaController,
+  contagemMembrosController,
 } = require("../controllers/equipeController");
 
 const {
@@ -62,7 +64,19 @@ router.get(
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
   listarEquipesPorGincanaController
 );
+// Pontuação da equipe em uma gincana específica
+router.get(
+  "/:id/pontuacao/gincana/:gincanaId",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  pontuacaoEquipeNaGincanaController
+);
 
+// Contagem de membros da equipe (com totais ativos/inativos)
+router.get(
+  "/:id/membros/contagem",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR),
+  contagemMembrosController
+);
 
 
 module.exports = router;

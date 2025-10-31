@@ -1,9 +1,15 @@
-/* importa as variáveis, botões, cards, etc. já definidos na Gincana */
+/* ====== Atividades.css ======
+   Tela de Atividades (lista + detalhes)
+   Mantido 100% do visual original
+   Depende de:
+   - global.css (tokens, .label, .btn-success)
+   - Gincana.css (até finalizarmos a migração total)
+================================ */
+
+/* Ainda importamos Gincana.css por segurança durante a transição */
 @import "./Gincana.css";
 
-/* ====== Somente estilos da tela de Atividades ====== */
-
-/* Layout em 2 colunas (lista + detalhes) */
+/* ---- Layout em 2 colunas (lista + detalhes) ---- */
 .atividades-layout {
     display: grid;
     grid-template-columns: 1.3fr 1fr;
@@ -11,7 +17,7 @@
     margin-top: 16px;
 }
 
-/* Lista */
+/* ---- Lista ---- */
 .lista-atividades,
 .detalhes-atividade {
     height: fit-content;
@@ -54,7 +60,6 @@
 
 .atividade-titulo {
     font-weight: 600;
-    /* mantendo teu padrão */
     color: var(--text);
 }
 
@@ -74,7 +79,7 @@
     color: #6b7280;
 }
 
-/* Painel de detalhes */
+/* ---- Painel de detalhes ---- */
 .detalhes-atividade {
     min-height: 400px;
 }
@@ -102,105 +107,35 @@
     color: var(--text);
 }
 
-/* Responsivo */
+/* ---- Responsivo ---- */
 @media (max-width: 900px) {
     .atividades-layout {
         grid-template-columns: 1fr;
     }
 }
 
-/* Detalhes: labels mais escuras, valores mais claros */
+/* ---- Detalhes: labels/valores ---- */
+/* .label já existe no global, mas estes reforçam a hierarquia visual local */
 .detalhes-atividade .label {
     color: #334155;
-    /* cinza mais escuro */
     font-weight: 600;
 }
 
 .detalhes-atividade .value {
     color: #64748b;
-    /* cinza mais claro */
 }
 
-/* Grid dos detalhes com um pouco de respiro */
+/* espaçamento do grid interno */
 .detalhes-atividade .detalhes-grid {
     margin-top: 8px;
 }
 
-/* Card de pontuação (posições x pontos) */
-.pontuacao-card {
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 12px;
-    background: linear-gradient(180deg, #ffffff, #fbfdff);
-    box-shadow: 0 6px 16px rgba(2, 6, 23, 0.06);
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 8px;
-    margin: 8px 0 16px;
-    /* separa do topo e do grid abaixo */
-}
-
-.pontuacao-col {
-    display: grid;
-    gap: 6px;
-    align-content: start;
-}
-
-.pontuacao-col .pos {
-    font-weight: 700;
-    color: #334155;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 8px 10px;
-    text-align: center;
-}
-
-.pontuacao-col.valores .pts {
-    font-weight: 600;
-    color: #0f172a;
-    background: #eef6ff;
-    border: 1px solid #dbeafe;
-    border-radius: 8px;
-    padding: 8px 10px;
-    text-align: center;
-}
-
-/* botões por status */
-.btn-success {
-    border: 1px solid #16a34a;
-    background: #16a34a;
-    color: #fff;
-}
-
-.btn-success:hover {
-    background: #15803d;
-}
-
-/* Detalhes — hierarquia visual dos campos */
-.campo-label {
-    display: block;
-    font-weight: 600;
-    /* padrão 600 que você escolheu */
-    color: #334155;
-    /* cinza mais escuro */
-    font-size: 18px;
-    margin-bottom: 2px;
-}
-
-.campo-valor {
-    color: #6b7280;
-    /* cinza mais claro */
-    margin: 0;
-}
-
-/* Destaque de pontuações (card com borda) */
+/* ---- Card de pontuação (1º/2º/3º) ---- */
 .pontuacao-card {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin: 12px 0 30px 0;
-
     padding: 12px;
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -226,24 +161,7 @@
     }
 }
 
-.detalhes-atividade .campo-valor {
-    color: #6b7280 !important;
-    /* cinza médio */
-    font-weight: 400;
-}
-
-.btn-success {
-    border: 1px solid #16a34a;
-    background: #16a34a;
-    color: #fff;
-}
-
-.btn-success:hover {
-    background: #15803d;
-    border-color: #15803d;
-}
-
-/* ===== EditorTexto (RTE) ===== */
+/* ---- Rich text/Editor: normalização segura ---- */
 .rte-wrap {
     display: flex;
     flex-direction: column;
@@ -294,6 +212,7 @@
     color: #94a3b8;
 }
 
+/* ---- Texto rico na visualização ---- */
 .atividade-descricao,
 .campo-valor {
     white-space: normal;
@@ -318,53 +237,16 @@
     margin: 2px 0;
 }
 
-/* Opcional: garanta que links no HTML fiquem visíveis */
-.atividade-descricao a,
-.campo-valor a {
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-/* ====== ESTILO DOS DETALHES ====== */
-.atividade-campo {
-    margin-bottom: 14px;
-}
-
-.campo-label {
-    display: block;
-    font-weight: 600;
-    color: #374151;
-    /* cinza escuro */
-    margin-bottom: 4px;
-}
-
-.campo-valor {
-    color: #9ca3af;
-    /* cinza claro */
-    line-height: 1.5;
-    white-space: normal;
-}
-
-/* mantém formatação do rich text */
-.campo-valor p,
-.campo-valor ul,
-.campo-valor ol {
-    margin: 6px 0;
-}
-
-.campo-valor li {
-    margin: 3px 0;
-}
-
-/* Negritos dentro de campo-valor = cinza escuro */
 .campo-valor b,
 .campo-valor strong {
     color: #374151;
     font-weight: 600;
 }
 
-/* Links visíveis */
 .campo-valor a {
     color: #4b5563;
     text-decoration: underline;
 }
+
+/* ---- Botões ---- */
+/* .btn-success já está definido no global (mesma cor e hover) */

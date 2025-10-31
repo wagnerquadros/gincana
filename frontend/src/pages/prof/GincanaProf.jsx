@@ -11,6 +11,9 @@ import { listarEquipes } from "../../api/equipes";
 import "../../styles/Gincana.css";
 import api from "../../api/client";
 
+// >>> IMPORTA O MODAL DE RANKING <<<
+import ModalRankingGincana from "../../components/ModalRankingGincana";
+
 export default function GincanaProf() {
   const navigate = useNavigate();
 
@@ -45,6 +48,9 @@ export default function GincanaProf() {
   const [carregandoAtividades, setCarregandoAtividades] = useState(false);
 
   const [encerrando, setEncerrando] = useState(false);
+
+  // >>> ESTADO DO MODAL DE RANKING <<<
+  const [mostrarRanking, setMostrarRanking] = useState(false);
 
   // ===== Helper de data/hora (para atividades) =====
   function fmtDataHora(v) {
@@ -152,8 +158,6 @@ export default function GincanaProf() {
       setDataInicio("");
       await carregarAbaAtiva();
       setAba("ATIVA");
-      // se quiser voltar para dashboard:
-      // setTimeout(() => navigate("/prof/dashboard"), 600);
     } catch (e) {
       console.error(e);
       setErro("Não foi possível criar a gincana.");
@@ -265,13 +269,10 @@ export default function GincanaProf() {
     }
   }
 
-
   // ===== UI =====
   return (
     <main className="page-wrap">
       <header className="gincana-header">
-
-
         <div className="gincana-tabs" role="tablist" aria-label="Seções da gincana">
           <button
             className={`tab-chip ${aba === "ATIVA" ? "active" : ""}`}
@@ -343,13 +344,18 @@ export default function GincanaProf() {
                     >
                       {encerrando ? "Encerrando..." : "🏁 Encerrar"}
                     </button>
+
+                    {/* >>> BOTÃO ATIVO: ABRE O MODAL DE RANKING <<< */}
                     <button
                       type="button"
-                      onClick={() => navigate("/prof/ranking")}
+                      onClick={() => setMostrarRanking(true)}
                       className="btn btn-secondary"
+                      disabled={!ativa?.id}
+                      title={ativa?.id ? "Ver ranking da gincana" : "Crie/ative uma gincana primeiro"}
                     >
                       🏆 Ver Ranking
                     </button>
+
                     <button
                       type="button"
                       onClick={carregarAbaAtiva}
@@ -506,6 +512,7 @@ export default function GincanaProf() {
               </button>
             </div>
           </section>
+
           {/* ===== ATIVIDADES DA GINCANA ATIVA ===== */}
           <section className="card card-elev acts-card">
             <header className="card-header">
@@ -566,7 +573,6 @@ export default function GincanaProf() {
               </button>
             </div>
           </section>
-
         </>
       )}
 
@@ -598,7 +604,6 @@ export default function GincanaProf() {
                     <button
                       type="button"
                       className="btn btn-secondary"
-                      // placeholder para futuro: ver detalhes/relatórios
                       onClick={() => alert("Em breve: detalhes da gincana encerrada")}
                     >
                       🔍 Ver detalhes
@@ -612,6 +617,12 @@ export default function GincanaProf() {
           )}
         </section>
       )}
+
+      {/* >>> MODAL DE RANKING <<< */}
+      <ModalRankingGincana
+        aberta={mostrarRanking}
+        onClose={() => setMostrarRanking(false)}
+      />
     </main>
   );
 }

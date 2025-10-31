@@ -342,7 +342,7 @@ export default function AtividadesProf() {
                   <span className="campo-label">Critérios</span>
                   <div
                     className="campo-valor"
-                    dangerouslySetInnerHTML={{ __html: safeHtml(selecionada.descricao || "") }}
+                    dangerouslySetInnerHTML={{ __html: safeHtml(selecionada.criterios || "") }}
                   />
                 </div>
 
