@@ -4,6 +4,16 @@ const Pontuacao = require("../models/Pontuacao");
 // helper: número seguro
 const num = (v, def = 0) => (typeof v === "number" ? v : def);
 
+async function existeAjustePorRevisao(revisaoId) {
+  const qs = await db
+    .collection("pontuacoes")
+    .where("origem", "==", "AJUSTE_REVISAO")
+    .where("revisaoId", "==", String(revisaoId || "").trim())
+    .limit(1)
+    .get();
+  return !qs.empty;
+}
+
 // Soma segura
 const soma = (arr) => arr.reduce((acc, n) => acc + (Number(n) || 0), 0);
 
@@ -250,6 +260,89 @@ async function pontuacaoAcumuladaEquipeNaGincana(gincanaId, equipeId) {
 }
 
 
+/**
+ * Aplica um ajuste de pontuação decorrente de uma revisão DEFERIDA.
+ * Estratégia: cria um NOVO documento em "pontuacoes" com origem = "AJUSTE_REVISAO"
+ * e adiciona o id na lista equipes.pontuacoesIds (arrayUnion).
+ *
+ * Não altera pontuações originais de encerramento — mantém auditoria.
+ *
+ * @param {Object} params
+ * @param {string} params.atividadeId
+ * @param {string} params.equipeId
+ * @param {string} params.revisaoId
+ * @param {number} [params.bonus=0]
+ * @param {number} [params.penalidade=0]
+ * @param {string} [params.observacao="Ajuste deferido por revisão"]
+ *
+ * @returns {Promise<{ id: string, atividadeId: string, equipeId: string, bonus: number, penalidade: number, total: number }>}
+ */
+async function aplicarAjustePorRevisao({
+  atividadeId,
+  equipeId,
+  revisaoId,
+  bonus = 0,
+  penalidade = 0,
+  observacao = "Ajuste deferido por revisão",
+}) {
+  if (!atividadeId || !atividadeId.trim()) throw new Error("atividadeId é obrigatório");
+  if (!equipeId || !equipeId.trim()) throw new Error("equipeId é obrigatório");
+  if (!revisaoId || !revisaoId.trim()) throw new Error("revisaoId é obrigatório");
+
+  if (await existeAjustePorRevisao(revisaoId)) {
+    throw new Error("Ajuste já aplicado para esta revisão.");
+  }
+
+  const agora = new Date();
+
+  // Cria doc de pontuação somente com bônus/penalidade (pontosObtidos = 0)
+  const pontRef = db.collection("pontuacoes").doc();
+  const pontoObj = new Pontuacao(
+    pontRef.id,
+    equipeId.trim(),
+    atividadeId.trim(),
+    0,                        // pontosObtidos não muda — ajuste isolado
+    Number(bonus || 0),
+    Number(penalidade || 0)
+  ).toObject();
+
+  // Campos extras para auditoria (não quebram ranking/consultas existentes)
+  const payload = {
+    ...pontoObj,
+    origem: "AJUSTE_REVISAO",
+    revisaoId: revisaoId.trim(),
+    observacao,
+    criadoEm: agora,
+    atualizadoEm: agora,
+  };
+
+  const batch = db.batch();
+  batch.set(pontRef, payload);
+
+  // Atualiza equipe: adiciona id desta pontuação de ajuste
+  const equipeRef = db.collection("equipes").doc(equipeId.trim());
+  batch.update(equipeRef, {
+    pontuacoesIds: admin.firestore.FieldValue.arrayUnion(pontRef.id),
+    atualizadoEm: agora,
+  });
+
+  await batch.commit();
+
+  // total segue a regra: pontosObtidos(0) + bonus - penalidade
+  const total = Number(bonus || 0) - Number(penalidade || 0);
+
+  return {
+    id: pontRef.id,
+    atividadeId: atividadeId.trim(),
+    equipeId: equipeId.trim(),
+    bonus: Number(bonus || 0),
+    penalidade: Number(penalidade || 0),
+    total,
+
+  };
+}
+
+
 
 
 module.exports = {
@@ -257,4 +350,5 @@ module.exports = {
   listarPontuacoesPorAtividade,
   rankingDaAtividade,
   pontuacaoAcumuladaEquipeNaGincana,
+  aplicarAjustePorRevisao,
 };

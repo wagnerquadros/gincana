@@ -28,6 +28,7 @@ app.use("/gincanas", gincanasRoutes);
 app.use("/atividades", atividadesRoutes);
 app.use("/equipes", equipesRoutes);
 app.use("/alunos", alunosRoutes);
+app.use("/revisoes", require("./routes/revisoes"));
 
 // Servir arquivos estáticos de uploads (pasta fora de src/)
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
