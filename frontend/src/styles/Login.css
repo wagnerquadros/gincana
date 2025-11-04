@@ -147,7 +147,7 @@ input:focus {
   font-size: 14px;
 }
 .link-cadastro {
-  color: var(--brand);
+  color: #2563eb;
   font-weight: 700;
   text-decoration: none;
 }

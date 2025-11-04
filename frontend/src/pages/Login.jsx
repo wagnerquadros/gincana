@@ -48,7 +48,7 @@ export default function Login() {
     <div className="login-bg">
       <div className="login-card" role="dialog" aria-labelledby="titulo-login">
         {/* Ícone da taça */}
-        <div className="trophy-wrap" aria-hidden="true">
+        <div className="trophy-wrap btn-primary" aria-hidden="true">
           <svg
             className="trophy"
             viewBox="0 0 24 24"
@@ -102,7 +102,7 @@ export default function Login() {
             autoComplete="current-password"
           />
 
-          <button type="submit" className="btn-login" disabled={carregando}>
+          <button type="submit" className="btn-login btn-primary" disabled={carregando}>
             {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>
