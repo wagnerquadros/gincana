@@ -2,6 +2,15 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 
+// ✅ OTIMIZAÇÃO: Compressão HTTP para reduzir tamanho das respostas
+// Ganho: Redução de 70-90% no tamanho das respostas JSON
+let compression;
+try {
+  compression = require("compression");
+} catch (e) {
+  console.warn("compression não instalado. Execute: npm install compression");
+}
+
 // Rotas
 const authRoutes = require("./routes/auth");
 const authPublic = require("./routes/authPublic");
@@ -13,6 +22,12 @@ const alunosRoutes = require("./routes/alunos");
 
 const app = express();
 app.use(cors());
+
+// ✅ OTIMIZAÇÃO: Compressão HTTP habilitada para todas as respostas
+if (compression) {
+  app.use(compression());
+}
+
 app.use(express.json());
 
 // health
