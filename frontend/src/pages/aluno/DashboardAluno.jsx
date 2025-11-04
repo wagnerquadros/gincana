@@ -191,8 +191,8 @@ export default function DashboardAluno() {
     }
 
     return (
-        <div className="dash">
-            <div className="content" style={{ display: "grid", gap: 16 }}>
+        <div className="dash" style={{ overflowX: "hidden" }}>
+            <div className="content dash-content">
                 {/* Topo */}
                 <div className="card">
                     <div className="card-body">
@@ -215,15 +215,8 @@ export default function DashboardAluno() {
                     <Kpi icone="✅" titulo="Atividades Concluídas" valor={qConcluidas} bg="bg-purple" />
                 </section>
 
-                {/* Dupla de listas */}
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 16,
-                        marginBottom: 24,
-                    }}
-                >
+                {/* Dupla de listas - AGORA USANDO CSS */}
+                <div className="listas-duplas">
                     <ListaSimples
                         titulo={
                             <span className="lista-titulo-icone">

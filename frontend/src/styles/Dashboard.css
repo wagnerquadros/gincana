@@ -1,7 +1,4 @@
-/* ====== Dashboard.css (refatorado) ======
-   Usa global.css para tokens, cards, botões, grid, tabela, etc.
-   Mantém 100% da aparência anterior.
-=========================================== */
+/* ====== Dashboard.css (completo mobile-first) ====== */
 
 /* Layout base do painel */
 .dash {
@@ -10,17 +7,13 @@
   flex-direction: column;
 }
 
-/* A .content já existe no global com largura/padding.
-   Caso o Dashboard precise de mais espaçamento, descomente:
-   .content { gap: 16px; }
-*/
-
 /* =========================
    Métricas (cards KPIs)
+   Mobile-first: 1 coluna → 2 (≥480px) → 4 (≥768px)
 ========================= */
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -28,6 +21,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 12px;
 }
 
 .metric-icon {
@@ -38,6 +32,7 @@
   border-radius: 10px;
   font-size: 18px;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .bg-blue {
@@ -59,6 +54,7 @@
 .metric-title {
   font-size: 13px;
   color: var(--muted);
+  margin-bottom: 4px;
 }
 
 .metric-value {
@@ -89,6 +85,7 @@
 
 .item-title {
   font-weight: 600;
+  font-size: 14px;
 }
 
 .item-sub {
@@ -110,7 +107,6 @@
 
 /* =========================
    Tabela (ajustes locais)
-   (Base da tabela está no global.css)
 ========================= */
 .table .center {
   text-align: center;
@@ -121,31 +117,18 @@
 }
 
 /* =========================
-   Responsividade específica
+   Grade das listas
 ========================= */
-@media (max-width: 1024px) {
-  .metrics {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.listas-duplas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-@media (max-width: 640px) {
-  .metric-value {
-    font-size: 24px;
-  }
-
-  .item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  .item-meta {
-    text-align: left;
-  }
-}
-
-/* Ícones e títulos destacados */
+/* =========================
+   Ícones e títulos destacados
+========================= */
 .lista-titulo-icone {
   display: flex;
   align-items: center;
@@ -191,4 +174,107 @@
 .ranking-titulo .emoji {
   font-size: 22px;
   line-height: 1;
+}
+
+/* Estado vazio */
+.estado-vazio {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+  font-style: italic;
+}
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+/* Telas muito pequenas (≤ 360px) */
+@media (max-width: 360px) {
+  .metric {
+    gap: 8px;
+    padding: 10px;
+  }
+  
+  .metric-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .metric-value {
+    font-size: 22px;
+  }
+  
+  .metric-title {
+    font-size: 12px;
+  }
+  
+  .item {
+    padding: 10px;
+  }
+  
+  .item-title {
+    font-size: 13px;
+  }
+}
+
+/* Mobile (≤ 480px) */
+@media (max-width: 480px) {
+  .h1 {
+    font-size: 20px;
+    line-height: 1.2;
+  }
+  
+  .metric-value {
+    font-size: 24px;
+  }
+  
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+  }
+  
+  .item-meta {
+    text-align: left;
+    width: 100%;
+  }
+  
+  .lista-titulo-icone {
+    font-size: 14px;
+  }
+  
+  .lista-titulo-icone .emoji {
+    font-size: 18px;
+  }
+}
+
+
+/* Tablet (≥ 640px) */
+@media (min-width: 640px) {
+  .h1 {
+    font-size: 24px;
+  }
+  
+  .item {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .item-meta {
+    text-align: right;
+    width: auto;
+  }
+}
+
+/* Tablet grande (≥ 768px) */
+
+
+/* Para garantir que o grid do conteúdo principal funcione */
+.dash .content {
+}
+
+.grid-unica {
+  grid-column: 1 / -1;
 }
