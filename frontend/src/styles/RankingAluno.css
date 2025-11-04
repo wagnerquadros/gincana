@@ -1,0 +1,258 @@
+/* RankingAluno.css */
+.ranking-aluno-page {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+  }
+  
+  /* Header com gradiente */
+  .ranking-header-card {
+    background: linear-gradient(135deg, var(--blue), #4f46e5);
+    border: 1px solid #3b82f6;
+    box-shadow: 0 10px 26px rgba(37, 99, 235, 0.18);
+    color: #fff;
+  }
+  
+  .ranking-header-card .card-header h1 {
+    margin: 0;
+    color: #fff;
+  }
+  
+  .ranking-header-card .muted {
+    margin-top: 6px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  /* Container dos KPIs */
+  .kpis-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    max-width: 980px;
+    margin: 0 auto;
+    align-items: stretch;
+  }
+  
+  /* Cards KPI com gradientes */
+  .kpi-card-gold {
+    
+    border-radius: 12px;
+  }
+  
+  .kpi-card-blue {
+    
+    border-radius: 12px;
+  }
+  
+  .kpi-card-green {
+
+    border-radius: 12px;
+  }
+  
+  /* Container do Top 3 */
+  .top3-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    max-width: 980px;
+    margin: 0 auto;
+    align-items: stretch;
+  }
+  
+  /* Cards de medalha com efeitos */
+  .medal-card-gold {
+    
+    border-radius: 12px;
+    transform: scale(1.04);
+    transition: transform 0.2s ease;
+  }
+  
+  .medal-card-silver {
+    
+    border-radius: 12px;
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+  }
+  
+  .medal-card-bronze {
+    
+    border-radius: 12px;
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+  }
+  
+  .medal-card-gold:hover,
+  .medal-card-silver:hover,
+  .medal-card-bronze:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Card de classificação completa */
+  .classificacao-card {
+    padding-bottom: 16px;
+  }
+  
+  .classificacao-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  
+  /* Linha de classificação */
+  .linha-classificacao {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .linha-classificacao .team-name {
+    font-weight: 700;
+  }
+  
+  .linha-classificacao .progress-bar {
+    height: 8px;
+    background: var(--line);
+    border-radius: 999px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  
+  .linha-classificacao .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+    transition: width 0.3s ease;
+  }
+  
+  .linha-classificacao .points {
+    font-weight: 800;
+    text-align: right;
+  }
+  
+  .linha-classificacao .members {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+  }
+  
+  /* Badges de medalha */
+  .medal-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: white;
+  }
+  
+  .medal-badge.gold {
+    background: linear-gradient(135deg, #fcd34d, #f59e0b);
+  }
+  
+  .medal-badge.silver {
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  }
+  
+  .medal-badge.bronze {
+    background: linear-gradient(135deg, #fdba74, #d97706);
+  }
+  
+  /* Container do ranking inline */
+  .ranking-inline-container {
+    width: 100%;
+  }
+  
+  /* Estados de loading e erro */
+  .ranking-loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--muted);
+  }
+  
+  .alert-erro {
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    margin: 16px 0;
+  }
+  
+  /* Responsividade */
+  @media (max-width: 1024px) {
+    .kpis-container,
+    .top3-container {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      max-width: 100%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .ranking-aluno-page {
+      gap: 12px;
+    }
+    
+    .kpis-container,
+    .top3-container {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .medal-card-gold,
+    .medal-card-silver,
+    .medal-card-bronze {
+      transform: none;
+    }
+    
+    .medal-card-gold:hover,
+    .medal-card-silver:hover,
+    .medal-card-bronze:hover {
+      transform: scale(1.02);
+    }
+    
+    .linha-classificacao {
+      grid-template-columns: 30px 1fr auto;
+      gap: 8px;
+      padding: 8px;
+    }
+    
+    .medal-badge {
+      width: 24px;
+      height: 24px;
+      font-size: 0.7rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .ranking-aluno-page {
+      gap: 8px;
+    }
+    
+    .linha-classificacao {
+      grid-template-columns: 25px 1fr auto;
+      gap: 6px;
+      padding: 6px;
+    }
+    
+    .team-name {
+      font-size: 0.9rem;
+    }
+    
+    .points {
+      font-size: 0.9rem;
+    }
+    
+    .members {
+      font-size: 0.7rem;
+    }
+  }
+
+
+  /* Layout inline melhorado */

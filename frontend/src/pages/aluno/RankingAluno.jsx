@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api/client";
 import { obterGincanaAtiva } from "../../api/gincana";
 import { listarEquipes } from "../../api/equipes";
-import "../../styles/Dashboard.css";   // tem .metrics, .metric, etc
-import "../../styles/Gincana.css";     // paleta/base
-import "../../styles/ModalRanking.css"; // estilos do ranking da tabela
+import "../../styles/Dashboard.css";
+import "../../styles/Gincana.css";
+import "../../styles/ModalRanking.css";
+import "../../styles/RankingAluno.css"; // CSS específico deste componente
 import RankingInlineGincana from "../../components/RankingInlineGincana";
 
 /* === helpers === */
@@ -24,11 +25,9 @@ function normalizarStatusAtividade(a) {
     return bruto || "DESCONHECIDO";
 }
 
-
-
 function Kpi({ icone, titulo, valor, bg }) {
     return (
-        <div className="card metric" style={{ minWidth: 260 }}> {/* + minWidth */}
+        <div className="card metric" style={{ minWidth: 260 }}>
             <div className={`metric-icon ${bg}`} aria-hidden="true">
                 {icone}
             </div>
@@ -42,11 +41,10 @@ function Kpi({ icone, titulo, valor, bg }) {
 
 function MedalCard({ pos, nome, pontos, membros, cor }) {
     const titulo = `${pos}º Lugar`;
-    const badgeClass =
-        pos === 1 ? "mr-pos gold" : pos === 2 ? "mr-pos silver" : "mr-pos bronze";
+    const badgeClass = `medal-badge ${pos === 1 ? 'gold' : pos === 2 ? 'silver' : 'bronze'}`;
 
     return (
-        <div className="card card-elev" style={{ display: "grid", gap: 8 }}>
+        <div className="card card-elev">
             <div className="card-header" style={{ marginBottom: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span className={badgeClass}>{pos}</span>
@@ -68,32 +66,22 @@ function MedalCard({ pos, nome, pontos, membros, cor }) {
     );
 }
 
-/* barra proporcional da classificação */
 function LinhaClassificacao({ pos, nome, total, membros, max }) {
     const pct = max > 0 ? Math.round((total / max) * 100) : 0;
-    const medalClass =
-        pos === 1 ? "mr-pos gold" : pos === 2 ? "mr-pos silver" : pos === 3 ? "mr-pos bronze" : "mr-pos";
+    const medalClass = `medal-badge ${pos === 1 ? 'gold' : pos === 2 ? 'silver' : pos === 3 ? 'bronze' : ''}`;
 
     return (
-        <li className="card card-elev" style={{ padding: 12 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "36px 1fr auto", alignItems: "center", gap: 12 }}>
-                <span className={medalClass}>{pos}</span>
-                <div>
-                    <div className="value" style={{ fontWeight: 700 }}>{nome}</div>
-                    <div style={{ height: 8, background: "var(--line)", borderRadius: 999, marginTop: 8, overflow: "hidden" }}>
-                        <div
-                            style={{
-                                height: "100%",
-                                width: `${pct}%`,
-                                background: "linear-gradient(90deg,#f59e0b,#f97316)",
-                            }}
-                        />
-                    </div>
+        <li className="card card-elev linha-classificacao">
+            <span className={medalClass}>{pos}</span>
+            <div>
+                <div className="value team-name">{nome}</div>
+                <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${pct}%` }} />
                 </div>
-                <div style={{ textAlign: "right" }}>
-                    <div className="value" style={{ fontWeight: 800 }}>{total}</div>
-                    <div className="muted" style={{ fontSize: 12 }}>{membros} membros</div>
-                </div>
+            </div>
+            <div>
+                <div className="value points">{total}</div>
+                <div className="muted members">{membros} membros</div>
             </div>
         </li>
     );
@@ -102,9 +90,8 @@ function LinhaClassificacao({ pos, nome, total, membros, max }) {
 export default function RankingAluno() {
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
-
     const [gincana, setGincana] = useState(null);
-    const [linhas, setLinhas] = useState([]); // {id, nome, membrosAtivos, total, pontos, bonus, penalidades}
+    const [linhas, setLinhas] = useState([]);
     const [qConcluidas, setQConcluidas] = useState(0);
 
     useEffect(() => {
@@ -115,7 +102,6 @@ export default function RankingAluno() {
                 setErro("");
                 setCarregando(true);
 
-                // 1) gincana
                 const ativa = await obterGincanaAtiva();
                 if (cancelado) return;
                 if (!ativa?.id) {
@@ -129,7 +115,6 @@ export default function RankingAluno() {
 
                 const gid = ativa.id;
 
-                // 2) equipes da gincana
                 const todas = await listarEquipes().catch((err) => {
                     console.error(err);
                     return [];
@@ -138,7 +123,6 @@ export default function RankingAluno() {
                     (e) => (e.gincanaId || e?.gincana?.id) === gid
                 );
 
-                // 3) linhas (membros + pontuação)
                 const rows = await Promise.all(
                     equipesDaGincana.map(async (e) => {
                         const id = e.id;
@@ -180,7 +164,6 @@ export default function RankingAluno() {
                 if (cancelado) return;
                 setLinhas(rows);
 
-                // 4) atividades concluídas
                 try {
                     const { data: acts } = await api.get(`/atividades/gincana/${gid}`);
                     const concluidas = (Array.isArray(acts) ? acts : [])
@@ -224,34 +207,22 @@ export default function RankingAluno() {
         return Math.round(soma / ordenadas.length);
     }, [ordenadas]);
 
-    /* ---------- render ---------- */
     if (carregando) {
         return (
             <div className="page-wrap">
-                <div className="card">Carregando ranking...</div>
+                <div className="card ranking-loading">Carregando ranking...</div>
             </div>
         );
     }
 
     return (
-        <div className="page-wrap" style={{ display: "grid", gap: 16 }}>
-            {/* Cabeçalho — card azul */}
-            <div
-                className="card"
-                style={{
-                    background: "linear-gradient(135deg, var(--blue), #4f46e5)",
-                    border: "1px solid #3b82f6",
-                    boxShadow: "0 10px 26px rgba(37, 99, 235, 0.18)",
-                    color: "#fff",
-                }}
-            >
+        <div className="page-wrap ranking-aluno-page">
+            {/* Cabeçalho */}
+            <div className="card ranking-header-card">
                 <div className="card-header">
                     <div>
                         <h1 className="h1" style={{ margin: 0, color: "#fff" }}>Ranking Geral</h1>
-                        <p
-                            className="muted"
-                            style={{ marginTop: 6, color: "rgba(255,255,255,0.85)" }}
-                        >
+                        <p className="muted">
                             {gincana?.nome
                                 ? `Acompanhe a classificação da ${gincana.nome}`
                                 : "Sem gincana ativa"}
@@ -260,94 +231,35 @@ export default function RankingAluno() {
                 </div>
             </div>
 
-            {/* alerta permanece fora/abaixo para manter contraste */}
             {erro && <div className="alert-erro">{erro}</div>}
 
-            {/* KPIs do topo — centralizados */}
-            {/* KPIs do topo — centralizados e coloridos */}
-            <section style={{ width: "100%" }}>
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, minmax(260px, 1fr))",
-                        gap: 16,
-                        maxWidth: 980,
-                        margin: "0 auto",
-                        alignItems: "stretch",
-                    }}
-                >
-                    <div
-                        style={{
-                            background: "linear-gradient(135deg, #fef3c7, #fde68a)",
-                            border: "1px solid #fbbf24",
-                            boxShadow: "0 4px 16px rgba(251,191,36,0.25)",
-                            borderRadius: 12,
-                        }}
-                    >
-                        <Kpi
-                            icone="🏆"
-                            titulo="Equipe Líder"
-                            valor={lider?.nome || "—"}
-                            bg="bg-gold"
-                        />
+            {/* KPIs do topo */}
+            <section className="kpis-container">
+                {/* Equipe Líder */}
+                <div className="kpi-card-gold">
+                    <div className="card  ">
+                        <div className="metric-value">🏆  Líder: {lider?.nome || "—"}</div>
                     </div>
+                </div>
 
-                    <div
-                        style={{
-                            background: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
-                            border: "1px solid #60a5fa",
-                            boxShadow: "0 4px 16px rgba(59,130,246,0.25)",
-                            borderRadius: 12,
-                        }}
-                    >
-                        <Kpi
-                            icone="📈"
-                            titulo="Pontuação da Líder"
-                            valor={`${lider?.total ?? 0} pts`}
-                            bg="bg-blue"
-                        />
+                {/* Pontuação */}
+                <div className="kpi-card-blue">
+                    <div className="card  ">
+                        <div className="metric-value">📈 Pontos: {lider?.total ?? 0}</div>
                     </div>
+                </div>
 
-                    <div
-                        style={{
-                            background: "linear-gradient(135deg, #dcfce7, #bbf7d0)",
-                            border: "1px solid #4ade80",
-                            boxShadow: "0 4px 16px rgba(34,197,94,0.25)",
-                            borderRadius: 12,
-                        }}
-                    >
-                        <Kpi
-                            icone="✅"
-                            titulo="Atividades Concluídas"
-                            valor={qConcluidas}
-                            bg="bg-green"
-                        />
+                {/* Atividades */}
+                <div className="kpi-card-green">
+                    <div className="card  ">
+                        <div className="metric-value">✅ Concluídas: {qConcluidas}</div>
                     </div>
                 </div>
             </section>
 
-            {/* Cards Top 3 — coloridos e destacados */}
-            <section
-                style={{
-                    width: "100%",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, minmax(260px, 1fr))",
-                    gap: 16,
-                    maxWidth: 980,
-                    margin: "0 auto",
-                    alignItems: "stretch",
-                }}
-            >
-                <div
-                    style={{
-                        background: "linear-gradient(180deg, #fff7e6, #fef3c7)",
-                        border: "2px solid #f59e0b",
-                        boxShadow: "0 6px 22px rgba(245,158,11,0.3)",
-                        borderRadius: 12,
-                        transform: "scale(1.04)",
-                        transition: "transform 0.2s ease",
-                    }}
-                >
+            {/* Top 3 */}
+            <section className="top3-container">
+                <div className="medal-card-gold">
                     <MedalCard
                         pos={1}
                         nome={lider?.nome}
@@ -357,16 +269,7 @@ export default function RankingAluno() {
                     />
                 </div>
 
-                <div
-                    style={{
-                        background: "linear-gradient(180deg, #f8fafc, #e5e7eb)",
-                        border: "2px solid #94a3b8",
-                        boxShadow: "0 6px 22px rgba(148,163,184,0.25)",
-                        borderRadius: 12,
-                        transform: "scale(1.02)",
-                        transition: "transform 0.2s ease",
-                    }}
-                >
+                <div className="medal-card-silver">
                     <MedalCard
                         pos={2}
                         nome={segundo?.nome}
@@ -376,16 +279,7 @@ export default function RankingAluno() {
                     />
                 </div>
 
-                <div
-                    style={{
-                        background: "linear-gradient(180deg, #fefce8, #fcd34d)",
-                        border: "2px solid #fbbf24",
-                        boxShadow: "0 6px 22px rgba(234,179,8,0.25)",
-                        borderRadius: 12,
-                        transform: "scale(1.02)",
-                        transition: "transform 0.2s ease",
-                    }}
-                >
+                <div className="medal-card-bronze">
                     <MedalCard
                         pos={3}
                         nome={terceiro?.nome}
@@ -396,14 +290,13 @@ export default function RankingAluno() {
                 </div>
             </section>
 
-
-            {/* Classificação completa (só total) */}
-            <section className="card card-elev" style={{ paddingBottom: 16 }}>
+            {/* Classificação completa */}
+            <section className="card card-elev classificacao-card">
                 <div className="card-header">
                     <h3 className="gincana-title">Classificação Completa</h3>
                     <div className="muted">Média: <strong>{media}</strong> pts</div>
                 </div>
-                <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 10 }}>
+                <ul className="classificacao-list">
                     {ordenadas.map((r, idx) => (
                         <LinhaClassificacao
                             key={r.id}
@@ -417,8 +310,8 @@ export default function RankingAluno() {
                 </ul>
             </section>
 
-            {/* Estatísticas (tabela igual à da Dashboard) */}
-            <section className="grid-unica">
+            {/* Ranking inline */}
+            <section className="ranking-inline-container">
                 <RankingInlineGincana />
             </section>
         </div>

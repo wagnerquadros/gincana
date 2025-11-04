@@ -2,21 +2,32 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api/client";
 import { obterGincanaAtiva } from "../api/gincana";
 import { listarEquipes } from "../api/equipes";
-import "../styles/ModalRanking.css"; // reaproveita TODO o estilo do modal
+import "../styles/ModalRanking.css";
 
 export default function RankingInlineGincana() {
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
     const [gincana, setGincana] = useState(null);
-    // [{id, nome, membrosAtivos, total, pontos, bonus, penalidades}]
     const [linhas, setLinhas] = useState([]);
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Detectar tamanho da tela de forma mais precisa
+    useEffect(() => {
+        const checkMobile = () => {
+            const width = window.innerWidth;
+            setIsMobile(width < 768);
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         (async () => {
             setErro("");
             setCarregando(true);
             try {
-                // 1) Gincana ativa
                 const ativa = await obterGincanaAtiva();
                 if (!ativa?.id) {
                     setGincana(null);
@@ -26,13 +37,11 @@ export default function RankingInlineGincana() {
                 }
                 setGincana(ativa);
 
-                // 2) Equipes da gincana
                 const todas = await listarEquipes();
                 const equipesDaGincana = (todas || []).filter(
                     (e) => (e.gincanaId || e?.gincana?.id) === ativa.id
                 );
 
-                // 3) Para cada equipe, buscar membros ativos e pontuação total
                 const rows = await Promise.all(
                     equipesDaGincana.map(async (e) => {
                         const id = e.id;
@@ -89,7 +98,6 @@ export default function RankingInlineGincana() {
     }, []);
 
     const ordenadas = useMemo(() => {
-        // Ordena por 'total' desc e desempata por nome
         return [...linhas].sort((a, b) => {
             if (b.total !== a.total) return b.total - a.total;
             return a.nome.localeCompare(b.nome);
@@ -108,65 +116,106 @@ export default function RankingInlineGincana() {
                 : idx === 2 ? "mr-pos bronze"
                     : "mr-pos";
 
-    // === Render inline (sem overlay), dentro de um card ===
-    return (
-        <div className="card">
-            <div className="card-head ranking-titulo">
-                <span className="emoji">🏆</span>
-                <span className="ranking-nome">
-                    Ranking — {gincana?.nome || "Gincana ativa"}
-                </span>
-            </div>
-
-            <div className="card-body" style={{ padding: 0 }}>
-                {erro && <div className="mr-alert-erro" style={{ margin: 16 }}>{erro}</div>}
-
-                {carregando ? (
-                    <p className="mr-loading" style={{ margin: 16 }}>Carregando...</p>
-                ) : ordenadas.length === 0 ? (
-                    <div className="mr-vazio" style={{ margin: 16 }}>
-                        Nenhuma equipe encontrada nesta gincana.
+    // Versão mobile melhorada
+    const MobileView = () => (
+        <div className="mobile-ranking">
+            {ordenadas.map((r, idx) => (
+                <div key={r.id} className={`mobile-row ${rowClasse(idx)}`}>
+                    <div className="mobile-row-header">
+                        <span className={medalhaClasse(idx)}>{idx + 1}</span>
+                        <div className="mobile-team-info">
+                            <span className="mobile-team-name">{r.nome}</span>
+                            <span className="mobile-members">👥 {r.membrosAtivos} membros</span>
+                        </div>
+                        <span className="mobile-total">{r.total}</span>
                     </div>
-                ) : (
-                    <div className="mr-table-scroll" style={{ maxHeight: "none" }}>
-                        <table className="mr-table">
-                            <thead>
-                                <tr>
-                                    <th className="center">Pos</th>
-                                    <th className="left">Equipe</th>
-                                    <th className="center">Membros</th>
-                                    <th className="center">Pontos</th>
-                                    <th className="center">Bônus</th>
-                                    <th className="center">Penalidades</th>
-                                    <th className="right strong">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {ordenadas.map((r, idx) => (
-                                    <tr key={r.id} className={rowClasse(idx)}>
-                                        <td className="center">
-                                            <span className={medalhaClasse(idx)} title={`Posição ${idx + 1}`}>
-                                                {idx + 1}
-                                            </span>
-                                        </td>
-                                        <td className="left">
-                                            <div className="mr-name">{r.nome}</div>
-                                        </td>
-                                        <td className="center">{r.membrosAtivos}</td>
-                                        <td className="center">{r.pontos}</td>
-                                        <td className="center">{r.bonus}</td>
-                                        <td className="center">{r.penalidades}</td>
-                                        <td className="right strong">{r.total}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-
-                        </table>
+                    <div className="mobile-row-details">
+                        <div className="mobile-stats-grid">
+                            <div className="stat-item">
+                                <span className="stat-label">Pontos</span>
+                                <span className="stat-value">{r.pontos}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">Bônus</span>
+                                <span className="stat-value bonus">{r.bonus}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">Penal.</span>
+                                <span className="stat-value penalty">{r.penalidades}</span>
+                            </div>
+                        </div>
                     </div>
-                )}
-            </div>
-            <div style={{ height: 24 }}></div>
+                </div>
+            ))}
         </div>
+    );
 
+    // Versão desktop com container responsivo
+    const DesktopView = () => (
+        <div className="table-container">
+            <div className="mr-table-scroll">
+                <table className="mr-table">
+                    <thead>
+                        <tr>
+                            <th className="center">Pos</th>
+                            <th className="left">Equipe</th>
+                            <th className="center">Membros</th>
+                            <th className="center">Pontos</th>
+                            <th className="center">Bônus</th>
+                            <th className="center">Penalidades</th>
+                            <th className="right strong">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ordenadas.map((r, idx) => (
+                            <tr key={r.id} className={rowClasse(idx)}>
+                                <td className="center">
+                                    <span className={medalhaClasse(idx)} title={`Posição ${idx + 1}`}>
+                                        {idx + 1}
+                                    </span>
+                                </td>
+                                <td className="left">
+                                    <div className="mr-name">{r.nome}</div>
+                                </td>
+                                <td className="center">{r.membrosAtivos}</td>
+                                <td className="center">{r.pontos}</td>
+                                <td className="center">{r.bonus}</td>
+                                <td className="center">{r.penalidades}</td>
+                                <td className="right strong">{r.total}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="ranking-container">
+            <div className="card">
+                <div className="card-head ranking-titulo">
+                    <span className="emoji">🏆</span>
+                    <span className="ranking-nome">
+                        Ranking — {gincana?.nome || "Gincana ativa"}
+                    </span>
+                </div>
+
+                <div className="card-body">
+                    {erro && <div className="mr-alert-erro">{erro}</div>}
+
+                    {carregando ? (
+                        <p className="mr-loading">Carregando...</p>
+                    ) : ordenadas.length === 0 ? (
+                        <div className="mr-vazio">
+                            Nenhuma equipe encontrada nesta gincana.
+                        </div>
+                    ) : isMobile ? (
+                        <MobileView />
+                    ) : (
+                        <DesktopView />
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }
