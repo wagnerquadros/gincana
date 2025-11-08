@@ -4,21 +4,27 @@ import api from "../../api/client";
 import "../../styles/Atividades.css";
 import { obterGincanaAtiva } from "../../api/gincana";
 import ModalPontuacoesAtividade from "../../components/ModalPontuacoesAtividade";
-// >>> NOVO: importar o modal de revisão
+import { useAutenticacao } from "../../auth/useAutenticacao";
 import ModalSolicitarRevisao from "../../components/ModalSolicitarRevisao";
 
 export default function AtividadesAluno() {
+    // --- Autenticação: pega equipe e id do aluno (se vier do provider)
+    const { usuario } = useAutenticacao() || {};
+    const equipeIdContext = usuario?.equipeId || usuario?.equipe?.id || null;
+    const alunoId = usuario?.id || usuario?.uid || null;
+
     const [gincanaAtiva, setGincanaAtiva] = useState(null);
     const [atividades, setAtividades] = useState([]);
     const [selecionada, setSelecionada] = useState(null);
 
     const [mostrarPontuacoes, setMostrarPontuacoes] = useState(false);
-    // >>> NOVO: estado para abrir/fechar o modal de revisão
-    const [mostrarRevisao, setMostrarRevisao] = useState(false);
-    // >>> NOVO: ID da equipe do aluno (ajuste conforme seu contexto de auth)
-    const equipeIdDoAluno = null; // ex.: useAutenticacao()?.usuario?.equipeId
 
-    const [filtro, setFiltro] = useState("TODAS"); // TODAS | AGENDADA | EM ANDAMENTO | CONCLUIDA
+    // modal de revisão + equipeId efetivo
+    const [mostrarRevisao, setMostrarRevisao] = useState(false);
+    const [equipeIdEfetivo, setEquipeIdEfetivo] = useState(equipeIdContext);
+
+    // Abas: TODAS | AGENDADA | EM ANDAMENTO | CONCLUIDA
+    const [filtro, setFiltro] = useState("TODAS");
     const [erro, setErro] = useState("");
     const [carregando, setCarregando] = useState(true);
 
@@ -30,6 +36,12 @@ export default function AtividadesAluno() {
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        // se auth atualizar, refletimos no efetivo
+        if (equipeIdContext && !equipeIdEfetivo) setEquipeIdEfetivo(equipeIdContext);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [equipeIdContext]);
 
     useEffect(() => {
         // limpa seleção quando a lista muda
@@ -52,9 +64,8 @@ export default function AtividadesAluno() {
     }
 
     function safeHtml(html = "") {
-        // remove scripts
+        // remove scripts e atributos on*=
         let s = String(html).replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
-        // remove atributos on*=
         s = s.replace(/\son\w+="[^"]*"/gi, "").replace(/\son\w+='[^']*'/gi, "");
         return s;
     }
@@ -99,6 +110,54 @@ export default function AtividadesAluno() {
             console.error(e);
             setErro("Erro ao carregar atividades.");
             setAtividades([]);
+        }
+    }
+
+    // Considera CONCLUIDA OU ENCERRADA
+    const isEncerradaOuConcluida =
+        !!selecionada &&
+        ["CONCLUIDA", "ENCERRADA"].includes(
+            String(selecionada?.statusAtividade || "").toUpperCase()
+        );
+
+    // Abre o modal de revisão garantindo o equipeId:
+    async function handleAbrirRevisao() {
+        try {
+            // 1) precisamos de uma atividade selecionada
+            if (!selecionada?.id) {
+                alert("Selecione uma atividade.");
+                return;
+            }
+            // 2) garantir equipe do aluno
+            let equipeId = equipeIdContext;
+            if (!equipeId) {
+                // tenta pegar do backend se o provider não trouxe
+                if (alunoId) {
+                    try {
+                        const { data } = await api.get(`/usuarios/${alunoId}`);
+                        equipeId = data?.equipeId || data?.equipe?.id || null;
+                    } catch {
+                        // se não houver endpoint por id, tenta /usuarios/me
+                        const { data: me } = await api.get(`/usuarios/me`);
+                        equipeId = me?.equipeId || me?.equipe?.id || null;
+                    }
+                } else {
+                    // sem alunoId, tenta /usuarios/me
+                    const { data: me } = await api.get(`/usuarios/me`);
+                    equipeId = me?.equipeId || me?.equipe?.id || null;
+                }
+            }
+
+            if (!equipeId) {
+                alert("Não foi possível abrir a solicitação de revisão. Faltando: equipe do aluno.");
+                return;
+            }
+
+            setEquipeIdEfetivo(equipeId);
+            setMostrarRevisao(true);
+        } catch (e) {
+            console.error(e);
+            alert("Não foi possível abrir a solicitação de revisão. Tente novamente.");
         }
     }
 
@@ -244,7 +303,6 @@ export default function AtividadesAluno() {
                                     </div>
                                 </div>
 
-                                {/* Critérios (render rico) */}
                                 <div className="atividade-campo">
                                     <span className="campo-label">Critérios</span>
                                     <div
@@ -264,7 +322,7 @@ export default function AtividadesAluno() {
                                 </div>
 
                                 <div className="btn-row">
-                                    {String(selecionada.statusAtividade).toUpperCase() === "CONCLUIDA" && (
+                                    {isEncerradaOuConcluida && (
                                         <>
                                             <button
                                                 className="btn btn-secondary"
@@ -274,12 +332,11 @@ export default function AtividadesAluno() {
                                                 🏆 Ver pontuação
                                             </button>
 
-                                            {/* >>> NOVO: botão Solicitar Revisão (só em CONCLUIDA) */}
+                                            {/* Abre o modal só depois de garantir equipeId */}
                                             <button
                                                 className="btn btn-primary"
                                                 title="Solicitar revisão desta atividade"
-                                                onClick={() => setMostrarRevisao(true)}
-                                                disabled={!equipeIdDoAluno} // habilite quando tiver o equipeId
+                                                onClick={handleAbrirRevisao}
                                             >
                                                 📨 Solicitar Revisão
                                             </button>
@@ -296,7 +353,7 @@ export default function AtividadesAluno() {
                 </div>
             )}
 
-            {/* ===== MODAL PONTUAÇÕES ===== */}
+            {/* ===== MODAIS ===== */}
             {mostrarPontuacoes && (
                 <ModalPontuacoesAtividade
                     aberta={mostrarPontuacoes}
@@ -305,17 +362,16 @@ export default function AtividadesAluno() {
                 />
             )}
 
-            {/* >>> NOVO: modal de Solicitar Revisão */}
             {mostrarRevisao && (
                 <ModalSolicitarRevisao
                     aberta={mostrarRevisao}
                     onClose={() => setMostrarRevisao(false)}
                     gincanaId={gincanaAtiva?.id}
                     atividade={selecionada}
-                    equipeId={equipeIdDoAluno}            // equipe do autor (aluno)
-                    equipeAlvoIdDefault={equipeIdDoAluno} // alvo padrão = própria equipe
+                    equipeId={equipeIdEfetivo}            // equipe do autor (aluno) — garantido
+                    equipeAlvoIdDefault={equipeIdEfetivo} // alvo padrão = própria equipe
                     onEnviado={() => setMostrarRevisao(false)}
-                    showEquipeAlvoSelect={true}           // mude para false se quiser travar
+                    showEquipeAlvoSelect={true}
                 />
             )}
         </main>

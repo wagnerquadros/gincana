@@ -45,23 +45,22 @@ export default function ModalSolicitarRevisao({
     );
     const [equipeAlvoId, setEquipeAlvoId] = useState(equipeAlvoIdInicial);
 
+    // sempre que mudar default, sincroniza o select
     useEffect(() => {
         setEquipeAlvoId(equipeAlvoIdInicial);
     }, [equipeAlvoIdInicial]);
 
+    // Carrega lista de equipes (para o select) quando abrir
     useEffect(() => {
         if (!aberta || !showEquipeAlvoSelect || !gincanaId) return;
         (async () => {
             try {
                 setCarregandoEquipes(true);
                 setErro("");
-                // Ajuste se teu endpoint for outro.
-                // Ex.: GET /equipes/gincana/:gincanaId
                 const { data } = await api.get(`/equipes/gincana/${gincanaId}`);
                 setEquipes(Array.isArray(data) ? data : []);
             } catch (e) {
                 console.error(e);
-                // opcional: manter silencioso e só permitir alvo = própria equipe
                 setEquipes([]);
             } finally {
                 setCarregandoEquipes(false);
@@ -73,27 +72,19 @@ export default function ModalSolicitarRevisao({
 
     function validarArquivos(filesList) {
         const files = Array.from(filesList || []);
-        if (files.length > LIMITE_QTD) {
-            return `Máximo de ${LIMITE_QTD} arquivos.`;
-        }
+        if (files.length > LIMITE_QTD) return `Máximo de ${LIMITE_QTD} arquivos.`;
         let total = 0;
         for (const f of files) {
             const okTipo =
                 TIPOS_PERMITIDOS.some((t) =>
                     t.endsWith("/") ? f.type.startsWith(t) : f.type === t
-                ) || TIPOS_PERMITIDOS.some((t) => f.type.startsWith(t)); // image/, video/
-            if (!okTipo) {
-                return "Tipos permitidos: imagens, vídeos ou PDF.";
-            }
+                ) || TIPOS_PERMITIDOS.some((t) => f.type.startsWith(t));
+            if (!okTipo) return "Tipos permitidos: imagens, vídeos ou PDF.";
             const mb = f.size / (1024 * 1024);
-            if (mb > LIMITE_MB_POR_ARQ) {
-                return `Cada arquivo deve ter até ${LIMITE_MB_POR_ARQ} MB.`;
-            }
+            if (mb > LIMITE_MB_POR_ARQ) return `Cada arquivo deve ter até ${LIMITE_MB_POR_ARQ} MB.`;
             total += mb;
         }
-        if (total > LIMITE_MB_TOTAL) {
-            return `Tamanho total excede ${LIMITE_MB_TOTAL} MB.`;
-        }
+        if (total > LIMITE_MB_TOTAL) return `Tamanho total excede ${LIMITE_MB_TOTAL} MB.`;
         return "";
     }
 
@@ -112,6 +103,7 @@ export default function ModalSolicitarRevisao({
     async function enviar() {
         setErro("");
 
+        // Validações finais (já chega aqui com equipeId vindo da tela)
         if (!gincanaId || !atividade?.id || !equipeId) {
             setErro("Dados insuficientes (gincana, atividade ou equipe do autor ausentes).");
             return;
@@ -127,14 +119,11 @@ export default function ModalSolicitarRevisao({
             const fd = new FormData();
             fd.append("gincanaId", String(gincanaId));
             fd.append("atividadeId", String(atividade.id));
-            fd.append("equipeId", String(equipeId)); // autor (back confere se é do aluno)
+            fd.append("equipeId", String(equipeId));
             if (equipeAlvoId) fd.append("equipeAlvoId", String(equipeAlvoId));
             fd.append("motivo", motivo.trim());
-
             arquivos.forEach((f, i) => fd.append("arquivos", f, f.name || `arquivo-${i}`));
 
-            // Teu controller create usa req.files + body => rota padrão:
-            // POST /revisoes
             const resp = await api.post(`/revisoes`, fd, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
@@ -147,19 +136,38 @@ export default function ModalSolicitarRevisao({
             }
         } catch (e) {
             console.error(e);
-            // Se o back retornar 403 com mensagens do teu controller, cai aqui
-            setErro(
-                e?.response?.data?.error ||
-                "Falha ao enviar solicitação de revisão."
-            );
+            setErro(e?.response?.data?.error || "Falha ao enviar solicitação de revisão.");
         } finally {
             setSalvando(false);
         }
     }
 
     return (
-        <div className="modal-backdrop">
-            <div className="modal card card-elev" role="dialog" aria-modal="true" aria-labelledby="revisao-titulo">
+        <div
+            className="modal-backdrop"
+            style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 9999,
+                padding: 16,
+            }}
+        >
+            {/* Centralizado, mesmo “look & feel” dos teus modais */}
+            <div
+                className="modal card card-elev"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="revisao-titulo"
+                style={{
+                    width: "min(720px, 92vw)",
+                    maxHeight: "85vh",
+                    overflow: "auto",
+                }}
+            >
                 <header className="card-header">
                     <h3 id="revisao-titulo" style={{ margin: 0 }}>
                         Solicitar Revisão — {atividade?.titulo || "-"}
@@ -167,6 +175,13 @@ export default function ModalSolicitarRevisao({
                 </header>
 
                 <div className="card-body" style={{ display: "grid", gap: 12 }}>
+                    {/* AVISO se faltar equipeId (defesa extra) */}
+                    {!equipeId && (
+                        <div className="alert-erro">
+                            Não foi possível identificar sua equipe. Feche este modal e tente novamente.
+                        </div>
+                    )}
+
                     {erro && <div className="alert-erro">{erro}</div>}
 
                     {showEquipeAlvoSelect && (
@@ -183,10 +198,7 @@ export default function ModalSolicitarRevisao({
                                     value={equipeAlvoId || ""}
                                     onChange={(e) => setEquipeAlvoId(e.target.value)}
                                 >
-                                    {/* opção de manter a própria equipe como alvo */}
-                                    <option value={equipeId || ""}>
-                                        Minha equipe (padrão)
-                                    </option>
+                                    <option value={equipeId || ""}>Minha equipe (padrão)</option>
                                     {equipes
                                         .filter((eq) => String(eq.id) !== String(equipeId))
                                         .map((eq) => (
@@ -233,7 +245,7 @@ export default function ModalSolicitarRevisao({
                     <button className="btn btn-secondary" onClick={onClose} disabled={salvando}>
                         Cancelar
                     </button>
-                    <button className="btn btn-success" onClick={enviar} disabled={salvando}>
+                    <button className="btn btn-success" onClick={enviar} disabled={salvando || !equipeId}>
                         {salvando ? "Enviando..." : "Enviar solicitação"}
                     </button>
                 </footer>
