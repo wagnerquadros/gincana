@@ -4,6 +4,8 @@ import api from "../../api/client";
 import "../../styles/Atividades.css";
 import { obterGincanaAtiva } from "../../api/gincana";
 import ModalPontuacoesAtividade from "../../components/ModalPontuacoesAtividade";
+// >>> NOVO: importar o modal de revisão
+import ModalSolicitarRevisao from "../../components/ModalSolicitarRevisao";
 
 export default function AtividadesAluno() {
     const [gincanaAtiva, setGincanaAtiva] = useState(null);
@@ -11,6 +13,10 @@ export default function AtividadesAluno() {
     const [selecionada, setSelecionada] = useState(null);
 
     const [mostrarPontuacoes, setMostrarPontuacoes] = useState(false);
+    // >>> NOVO: estado para abrir/fechar o modal de revisão
+    const [mostrarRevisao, setMostrarRevisao] = useState(false);
+    // >>> NOVO: ID da equipe do aluno (ajuste conforme seu contexto de auth)
+    const equipeIdDoAluno = null; // ex.: useAutenticacao()?.usuario?.equipeId
 
     const [filtro, setFiltro] = useState("TODAS"); // TODAS | AGENDADA | EM ANDAMENTO | CONCLUIDA
     const [erro, setErro] = useState("");
@@ -259,13 +265,25 @@ export default function AtividadesAluno() {
 
                                 <div className="btn-row">
                                     {String(selecionada.statusAtividade).toUpperCase() === "CONCLUIDA" && (
-                                        <button
-                                            className="btn btn-secondary"
-                                            title="Ver pontuação/ranking"
-                                            onClick={abrirModalPontuacoes}
-                                        >
-                                            🏆 Ver pontuação
-                                        </button>
+                                        <>
+                                            <button
+                                                className="btn btn-secondary"
+                                                title="Ver pontuação/ranking"
+                                                onClick={abrirModalPontuacoes}
+                                            >
+                                                🏆 Ver pontuação
+                                            </button>
+
+                                            {/* >>> NOVO: botão Solicitar Revisão (só em CONCLUIDA) */}
+                                            <button
+                                                className="btn btn-primary"
+                                                title="Solicitar revisão desta atividade"
+                                                onClick={() => setMostrarRevisao(true)}
+                                                disabled={!equipeIdDoAluno} // habilite quando tiver o equipeId
+                                            >
+                                                📨 Solicitar Revisão
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </>
@@ -284,6 +302,20 @@ export default function AtividadesAluno() {
                     aberta={mostrarPontuacoes}
                     onClose={fecharModalPontuacoes}
                     atividade={selecionada}
+                />
+            )}
+
+            {/* >>> NOVO: modal de Solicitar Revisão */}
+            {mostrarRevisao && (
+                <ModalSolicitarRevisao
+                    aberta={mostrarRevisao}
+                    onClose={() => setMostrarRevisao(false)}
+                    gincanaId={gincanaAtiva?.id}
+                    atividade={selecionada}
+                    equipeId={equipeIdDoAluno}            // equipe do autor (aluno)
+                    equipeAlvoIdDefault={equipeIdDoAluno} // alvo padrão = própria equipe
+                    onEnviado={() => setMostrarRevisao(false)}
+                    showEquipeAlvoSelect={true}           // mude para false se quiser travar
                 />
             )}
         </main>
