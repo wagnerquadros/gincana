@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { obterGincanaAtiva } from "../api/gincana";
 import { obterRankingGincana } from "../api/gincana";
+import { exportToExcel, exportToCSV } from "../utils/exportUtils";
 import "../styles/ModalRanking.css";
 
 /**
@@ -86,6 +87,78 @@ export default function RankingInlineGincana() {
                 : idx === 2 ? "mr-pos bronze"
                     : "mr-pos";
 
+    /**
+     * Prepara os dados do ranking para exportação
+     * Adiciona a posição (colocação) e formata os dados
+     */
+    const dadosParaExportacao = useMemo(() => {
+        return ordenadas.map((item, idx) => ({
+            posicao: idx + 1,
+            nome: item.nome,
+            membrosAtivos: item.membrosAtivos,
+            pontos: item.pontos,
+            bonus: item.bonus,
+            penalidades: item.penalidades,
+            total: item.total,
+        }));
+    }, [ordenadas]);
+
+    /**
+     * Gera o nome base do arquivo baseado na gincana
+     */
+    const nomeBaseArquivo = useMemo(() => {
+        const nomeGincana = gincana?.nome || "gincana";
+        const nomeNormalizado = nomeGincana
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9\s]/g, "")
+            .replace(/\s+/g, "_");
+        return `ranking_${nomeNormalizado}`;
+    }, [gincana]);
+
+    /**
+     * Cabeçalhos personalizados para a exportação
+     */
+    const cabecalhos = {
+        posicao: "Posição",
+        nome: "Equipe",
+        membrosAtivos: "Membros Ativos",
+        pontos: "Pontos",
+        bonus: "Bônus",
+        penalidades: "Penalidades",
+        total: "Total",
+    };
+
+    /**
+     * Manipula a exportação para Excel
+     */
+    const handleExportarExcel = () => {
+        try {
+            exportToExcel(
+                dadosParaExportacao,
+                nomeBaseArquivo,
+                cabecalhos,
+                "Ranking"
+            );
+        } catch (error) {
+            console.error("Erro ao exportar para Excel:", error);
+            alert("Erro ao exportar para Excel. Tente novamente.");
+        }
+    };
+
+    /**
+     * Manipula a exportação para CSV
+     */
+    const handleExportarCSV = () => {
+        try {
+            exportToCSV(dadosParaExportacao, nomeBaseArquivo, cabecalhos);
+        } catch (error) {
+            console.error("Erro ao exportar para CSV:", error);
+            alert("Erro ao exportar para CSV. Tente novamente.");
+        }
+    };
+
     // Versão mobile melhorada
     const MobileView = () => (
         <div className="mobile-ranking">
@@ -164,10 +237,34 @@ export default function RankingInlineGincana() {
         <div className="ranking-container">
             <div className="card">
                 <div className="card-head ranking-titulo">
-                    <span className="emoji">🏆</span>
-                    <span className="ranking-nome">
-                        Ranking — {gincana?.nome || "Gincana ativa"}
-                    </span>
+                    <div className="ranking-titulo-esquerda">
+                        <span className="emoji">🏆</span>
+                        <span className="ranking-nome">
+                            Ranking — {gincana?.nome || "Gincana ativa"}
+                        </span>
+                    </div>
+                    {!carregando && ordenadas.length > 0 && (
+                        <div className="ranking-botoes-exportacao">
+                            <button
+                                className="btn-exportar btn-exportar-excel"
+                                onClick={handleExportarExcel}
+                                title="Exportar para Excel (.xlsx)"
+                                aria-label="Exportar ranking para Excel"
+                            >
+                                <span className="btn-exportar-icone">📊</span>
+                                <span className="btn-exportar-texto">Excel</span>
+                            </button>
+                            <button
+                                className="btn-exportar btn-exportar-csv"
+                                onClick={handleExportarCSV}
+                                title="Exportar para CSV (.csv)"
+                                aria-label="Exportar ranking para CSV"
+                            >
+                                <span className="btn-exportar-icone">📄</span>
+                                <span className="btn-exportar-texto">CSV</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="card-body">
