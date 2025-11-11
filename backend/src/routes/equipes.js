@@ -11,6 +11,7 @@ const {
   obterEquipeResumoController,
   pontuacaoEquipeNaGincanaController,
   contagemMembrosController,
+  listarMembrosEquipeController,
 } = require("../controllers/equipeController");
 
 const {
@@ -69,6 +70,14 @@ router.get(
   "/:id/pontuacao/gincana/:gincanaId",
   authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
   pontuacaoEquipeNaGincanaController
+);
+
+// Lista membros da equipe (ALUNO pode ver membros da sua equipe)
+// IMPORTANTE: Esta rota deve vir ANTES de /:id/membros/contagem para evitar conflito
+router.get(
+  "/:id/membros",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  listarMembrosEquipeController
 );
 
 // Contagem de membros da equipe (com totais ativos/inativos)
