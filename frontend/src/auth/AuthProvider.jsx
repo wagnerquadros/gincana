@@ -34,12 +34,34 @@ export function ProvedorAutenticacao({ children }) {
         if (token) localStorage.setItem("token", token);
 
         let bruto = data?.user ?? data?.usuario ?? null;
-        if (!bruto) {
+        
+        // Se não tiver usuário completo na resposta, busca do backend
+        // Isso garante que temos informações completas como equipeId
+        if (!bruto || !bruto.id) {
             try {
                 const me = await api.get("/auth/me");
-                bruto = me.data;
+                bruto = me.data?.user || me.data;
             } catch {
-                bruto = data ?? null;
+                // Se /auth/me falhar, tenta buscar pelo ID do token
+                if (data?.user?.id) {
+                    try {
+                        const usuarioCompleto = await api.get(`/usuarios/${data.user.id}`);
+                        bruto = usuarioCompleto.data;
+                    } catch {
+                        bruto = data ?? null;
+                    }
+                } else {
+                    bruto = data ?? null;
+                }
+            }
+        } else {
+            // Se já temos o ID, busca dados completos do usuário para ter equipeId
+            try {
+                const usuarioCompleto = await api.get(`/usuarios/${bruto.id}`);
+                bruto = usuarioCompleto.data;
+            } catch {
+                // Se falhar, usa o que já temos
+                console.warn("Não foi possível buscar dados completos do usuário");
             }
         }
 
@@ -56,8 +78,14 @@ export function ProvedorAutenticacao({ children }) {
         setUsuario(null);
     }
 
+    function atualizarUsuario(usuarioAtualizado) {
+        const userNorm = normalizarUsuario(usuarioAtualizado);
+        localStorage.setItem("usuario", JSON.stringify(userNorm));
+        setUsuario(userNorm);
+    }
+
     const value = useMemo(
-        () => ({ usuario, carregando, entrar, sair }),
+        () => ({ usuario, carregando, entrar, sair, atualizarUsuario }),
         [usuario, carregando]
     );
 
