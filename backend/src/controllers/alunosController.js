@@ -24,14 +24,20 @@ async function getOne(req, res) {
   }
 }
 
-// PATCH /alunos/:id/equipe  (ADM e PROFESSOR)
+// PATCH /alunos/:id/equipe  (ADM, PROFESSOR e ALUNO - apenas sua própria equipe)
 async function updateEquipe(req, res) {
   try {
     const { id } = req.params;
     const { equipeId } = req.body;
+    const userId = req.user?.id;
 
     if (!equipeId) {
       return res.status(400).json({ error: "Informe equipeId" });
+    }
+
+    // Se for ALUNO, só pode atualizar sua própria equipe
+    if (req.user?.role === "ALUNO" && userId !== id) {
+      return res.status(403).json({ error: "Você só pode atualizar sua própria equipe" });
     }
 
     const out = await updateAlunoEquipe(id, equipeId);
