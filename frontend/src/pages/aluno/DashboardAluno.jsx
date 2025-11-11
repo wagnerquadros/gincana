@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/client";
 import { obterGincanaAtiva } from "../../api/gincana";
+import { useAutenticacao } from "../../auth/useAutenticacao";
+import { obterUsuario } from "../../api/usuarios";
 import "../../styles/Dashboard.css";
 import RankingInlineGincana from "../../components/RankingInlineGincana";
+import ModalEntrarEquipe from "../../components/ModalEntrarEquipe";
 
 // === helper local para classificar status ===
 function normalizarStatusAtividade(a) {
@@ -70,6 +73,8 @@ function ListaSimples({ titulo, itens = [], vazio = "Sem itens", destaque }) {
 }
 
 export default function DashboardAluno() {
+    const { usuario, atualizarUsuario } = useAutenticacao();
+    
     // gincana
     const [gincana, setGincana] = useState(null);
 
@@ -86,7 +91,49 @@ export default function DashboardAluno() {
     // estado
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
+    
+    // Modal de entrar em equipe
+    const [modalEquipeAberto, setModalEquipeAberto] = useState(false);
+    const [verificandoEquipe, setVerificandoEquipe] = useState(true);
 
+    // Verifica se o aluno tem equipe ao carregar o dashboard
+    useEffect(() => {
+        async function verificarEquipeAluno() {
+            // Só verifica se for aluno
+            if (!usuario?.id || usuario?.role !== "ALUNO") {
+                setVerificandoEquipe(false);
+                return;
+            }
+
+            try {
+                // 1. Verifica se há gincana ativa (necessário para listar equipes)
+                const gincanaAtiva = await obterGincanaAtiva();
+                if (!gincanaAtiva?.id) {
+                    // Sem gincana ativa, não abre o modal
+                    setVerificandoEquipe(false);
+                    return;
+                }
+
+                // 2. Busca dados completos do usuário para garantir que temos o equipeId atualizado
+                const usuarioCompleto = await obterUsuario(usuario.id);
+                
+                // 3. Verifica se o aluno não tem equipe
+                if (!usuarioCompleto?.equipeId) {
+                    // Abre o modal automaticamente
+                    setModalEquipeAberto(true);
+                }
+            } catch (error) {
+                console.error("Erro ao verificar equipe do aluno:", error);
+                // Em caso de erro, não abre o modal (pode ser um problema temporário)
+            } finally {
+                setVerificandoEquipe(false);
+            }
+        }
+
+        verificarEquipeAluno();
+    }, [usuario?.id, usuario?.role]);
+
+    // Carrega dados do dashboard
     useEffect(() => {
         let cancelado = false;
 
@@ -174,6 +221,21 @@ export default function DashboardAluno() {
         };
     }, []);
 
+    // Handler para quando o aluno entrar em uma equipe
+    const handleEntradaConfirmada = (usuarioAtualizado) => {
+        // Atualiza o contexto de autenticação
+        if (atualizarUsuario) {
+            atualizarUsuario(usuarioAtualizado);
+        }
+        
+        // Fecha o modal
+        setModalEquipeAberto(false);
+        
+        // Recarrega a página para atualizar os dados do dashboard
+        // Isso garante que tudo seja atualizado corretamente
+        window.location.reload();
+    };
+
     const tituloTopo = useMemo(() => {
         if (gincana?.id) return gincana.nome ?? "Gincana Ativa";
         return "Nenhuma gincana em andamento";
@@ -191,60 +253,69 @@ export default function DashboardAluno() {
     }
 
     return (
-        <div className="dash" style={{ overflowX: "hidden" }}>
-            <div className="content dash-content">
-                {/* Topo */}
-                <div className="card">
-                    <div className="card-body">
-                        <h1 className="h1">{tituloTopo}</h1>
-                        <p className="muted">
-                            {gincana?.id
-                                ? "Acompanhe o andamento da gincana"
-                                : "Crie/ative uma gincana para começar"}
-                        </p>
+        <>
+            {/* Modal de entrar em equipe - abre automaticamente se aluno não tiver equipe */}
+            <ModalEntrarEquipe
+                aberta={modalEquipeAberto}
+                onClose={() => setModalEquipeAberto(false)}
+                onEntradaConfirmada={handleEntradaConfirmada}
+            />
+
+            <div className="dash" style={{ overflowX: "hidden" }}>
+                <div className="content dash-content">
+                    {/* Topo */}
+                    <div className="card">
+                        <div className="card-body">
+                            <h1 className="h1">{tituloTopo}</h1>
+                            <p className="muted">
+                                {gincana?.id
+                                    ? "Acompanhe o andamento da gincana"
+                                    : "Crie/ative uma gincana para começar"}
+                            </p>
+                        </div>
                     </div>
+
+                    {erro && <div className="alert-erro">{erro}</div>}
+
+                    {/* KPIs */}
+                    <section className="metrics">
+                        <Kpi icone="👥" titulo="Equipes Participantes" valor={qEquipes} bg="bg-blue" />
+                        <Kpi icone="⏳" titulo="Tarefas em Andamento" valor={qAndamento} bg="bg-green" />
+                        <Kpi icone="🗓️" titulo="Tarefas Agendadas" valor={qAgendadas} bg="bg-orange" />
+                        <Kpi icone="✅" titulo="Atividades Concluídas" valor={qConcluidas} bg="bg-purple" />
+                    </section>
+
+                    {/* Dupla de listas - AGORA USANDO CSS */}
+                    <div className="listas-duplas">
+                        <ListaSimples
+                            titulo={
+                                <span className="lista-titulo-icone">
+                                    <span className="emoji">⚡</span> Atividades em Andamento
+                                </span>
+                            }
+                            itens={andamentoLista}
+                            vazio="Nenhuma atividade em andamento"
+                            destaque="andamento"
+                        />
+
+                        <ListaSimples
+                            titulo={
+                                <span className="lista-titulo-icone">
+                                    <span className="emoji">📅</span> Atividades Agendadas
+                                </span>
+                            }
+                            itens={agendadasLista}
+                            vazio="Nenhuma atividade agendada"
+                            destaque="agendada"
+                        />
+                    </div>
+
+                    {/* Ranking */}
+                    <section className="grid-unica">
+                        <RankingInlineGincana />
+                    </section>
                 </div>
-
-                {erro && <div className="alert-erro">{erro}</div>}
-
-                {/* KPIs */}
-                <section className="metrics">
-                    <Kpi icone="👥" titulo="Equipes Participantes" valor={qEquipes} bg="bg-blue" />
-                    <Kpi icone="⏳" titulo="Tarefas em Andamento" valor={qAndamento} bg="bg-green" />
-                    <Kpi icone="🗓️" titulo="Tarefas Agendadas" valor={qAgendadas} bg="bg-orange" />
-                    <Kpi icone="✅" titulo="Atividades Concluídas" valor={qConcluidas} bg="bg-purple" />
-                </section>
-
-                {/* Dupla de listas - AGORA USANDO CSS */}
-                <div className="listas-duplas">
-                    <ListaSimples
-                        titulo={
-                            <span className="lista-titulo-icone">
-                                <span className="emoji">⚡</span> Atividades em Andamento
-                            </span>
-                        }
-                        itens={andamentoLista}
-                        vazio="Nenhuma atividade em andamento"
-                        destaque="andamento"
-                    />
-
-                    <ListaSimples
-                        titulo={
-                            <span className="lista-titulo-icone">
-                                <span className="emoji">📅</span> Atividades Agendadas
-                            </span>
-                        }
-                        itens={agendadasLista}
-                        vazio="Nenhuma atividade agendada"
-                        destaque="agendada"
-                    />
-                </div>
-
-                {/* Ranking */}
-                <section className="grid-unica">
-                    <RankingInlineGincana />
-                </section>
             </div>
-        </div>
+        </>
     );
 }
