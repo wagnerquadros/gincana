@@ -131,6 +131,38 @@ const contagemMembrosController = async (req, res) => {
   }
 };
 
+// 🔹 GET /equipes/:id/membros?ativo=true|false (opcional) - Lista membros da equipe
+const listarMembrosEquipeController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ativo } = req.query;
+    const user = req.user;
+
+    // Se for ALUNO, verifica se ele pertence à equipe solicitada
+    if (user?.role === "ALUNO") {
+      const { getById } = require("../services/usuariosService");
+      const usuarioCompleto = await getById(user.id);
+      if (!usuarioCompleto?.equipeId || String(usuarioCompleto.equipeId) !== String(id)) {
+        return res.status(403).json({ error: "Você só pode visualizar membros da sua própria equipe" });
+      }
+    }
+
+    // Busca membros da equipe
+    const membros = await listAlunosPorEquipe(id, {
+      ativo: typeof ativo === "undefined" ? undefined : ativo === "true",
+    });
+
+    return res.json({
+      equipeId: id,
+      membros: Array.isArray(membros) ? membros : [],
+      total: Array.isArray(membros) ? membros.length : 0,
+    });
+  } catch (err) {
+    console.error("ERRO LISTAR MEMBROS EQUIPE:", err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
 
 module.exports = {
   criarEquipeController,
@@ -142,4 +174,5 @@ module.exports = {
   obterEquipeResumoController,
   pontuacaoEquipeNaGincanaController,
   contagemMembrosController,
+  listarMembrosEquipeController,
 };
