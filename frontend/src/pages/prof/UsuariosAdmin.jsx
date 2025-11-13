@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { listarUsuarios, atualizarUsuario } from "../../api/usuarios";
+import { obterGincanaAtiva } from "../../api/gincana";
+import { listarEquipesPorGincana } from "../../api/equipes";
+import ModalCriarUsuario from "../../components/ModalCriarUsuario";
 import { useAutenticacao } from "../../auth/useAutenticacao";
 import api from "../../api/client";
 import "../../styles/Usuarios.css";
@@ -21,6 +24,9 @@ export default function UsuariosAdmin() {
   const [consultados, setConsultados] = useState(new Set());
   const [editando, setEditando] = useState(false);
   const [form, setForm] = useState({ nome: "", email: "", role: "", ativo: true, equipeId: "" });
+  const [equipesAtivas, setEquipesAtivas] = useState([]);
+  const [equipesLoading, setEquipesLoading] = useState(false);
+  const [modalCriar, setModalCriar] = useState(false);
 
   // ======= CONTEXTO DE AUTENTICAÇÃO =======
   const { usuario } = useAutenticacao();
@@ -102,6 +108,9 @@ export default function UsuariosAdmin() {
       equipeId: (selecionado.role === "ALUNO" ? (selecionado.equipeId || "") : ""),
     });
     setEditando(true);
+    if ((selecionado.role || "").toUpperCase() === "ALUNO") {
+      carregarEquipesAtivas();
+    }
   }
 
   function cancelarEdicao() {
@@ -123,34 +132,71 @@ export default function UsuariosAdmin() {
       if (roleFinal === "ALUNO" && form.equipeId) {
         await api.patch(`/usuarios/${id}/equipe`, { equipeId: form.equipeId });
       }
+      const equipeNomeFinal = roleFinal === "ALUNO"
+        ? (
+            (equipesAtivas.find((e) => e.id === form.equipeId)?.nome) ??
+            (typeof equipesCache[form.equipeId] !== "undefined" ? (equipesCache[form.equipeId] || null) : null)
+          )
+        : null;
       setUsuarios((prev) => prev.map((u) => (
         u.id === id
           ? {
-            ...u,
-            nome: atualizado && atualizado.nome ? atualizado.nome : form.nome,
-            email: atualizado && atualizado.email ? atualizado.email : form.email,
-            role: ((atualizado && atualizado.role) ? atualizado.role : form.role).toUpperCase(),
-            ativo: typeof (atualizado && atualizado.ativo) === "boolean" ? atualizado.ativo : form.ativo,
-            equipeId: roleFinal === "ALUNO" ? (form.equipeId || null) : null,
-          }
+              ...u,
+              nome: atualizado && atualizado.nome ? atualizado.nome : form.nome,
+              email: atualizado && atualizado.email ? atualizado.email : form.email,
+              role: ((atualizado && atualizado.role) ? atualizado.role : form.role).toUpperCase(),
+              ativo: typeof (atualizado && atualizado.ativo) === "boolean" ? atualizado.ativo : form.ativo,
+              equipeId: roleFinal === "ALUNO" ? (form.equipeId || null) : null,
+              equipeNome: equipeNomeFinal,
+            }
           : u
       )));
       setSelecionado((prev) => (
         prev && prev.id === id
           ? {
-            ...prev,
-            nome: atualizado && atualizado.nome ? atualizado.nome : form.nome,
-            email: atualizado && atualizado.email ? atualizado.email : form.email,
-            role: ((atualizado && atualizado.role) ? atualizado.role : form.role).toUpperCase(),
-            ativo: typeof (atualizado && atualizado.ativo) === "boolean" ? atualizado.ativo : form.ativo,
-            equipeId: roleFinal === "ALUNO" ? (form.equipeId || null) : null,
-          }
+              ...prev,
+              nome: atualizado && atualizado.nome ? atualizado.nome : form.nome,
+              email: atualizado && atualizado.email ? atualizado.email : form.email,
+              role: ((atualizado && atualizado.role) ? atualizado.role : form.role).toUpperCase(),
+              ativo: typeof (atualizado && atualizado.ativo) === "boolean" ? atualizado.ativo : form.ativo,
+              equipeId: roleFinal === "ALUNO" ? (form.equipeId || null) : null,
+              equipeNome: equipeNomeFinal,
+            }
           : prev
       ));
       setEditando(false);
     } catch (e) {
       console.log(e);
       alert("Falha ao salvar alterações");
+    }
+  }
+
+  async function carregarEquipesAtivas() {
+    try {
+      setEquipesLoading(true);
+      setEquipesAtivas([]);
+      const ativa = await obterGincanaAtiva();
+      const gid = ativa?.id || "";
+      if (!gid) {
+        setEquipesLoading(false);
+        return;
+      }
+      const lista = await listarEquipesPorGincana(gid, { ativo: true });
+      const norm = (lista || []).map((e) => ({ id: e.id, nome: e.nome || "" }));
+      norm.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+      setEquipesAtivas(norm);
+    } catch {
+      setEquipesAtivas([]);
+    } finally {
+      setEquipesLoading(false);
+    }
+  }
+
+  function onChangeRole(e) {
+    const value = e.target.value;
+    setForm((prev) => ({ ...prev, role: value, equipeId: (value === "ALUNO" ? prev.equipeId : "") }));
+    if (value === "ALUNO") {
+      carregarEquipesAtivas();
     }
   }
 
@@ -298,7 +344,7 @@ export default function UsuariosAdmin() {
       {/* HEADER: botão + filtros */}
       <header className="usuarios-header">
         <div className="titulo-area">
-          <button className="btn btn-primary">➕ Cadastrar novo usuário</button>
+          <button className="btn btn-primary" onClick={() => setModalCriar(true)}>➕ Cadastrar novo usuário</button>
         </div>
 
         <div className="tabs" role="tablist" aria-label="Filtros de usuários">
@@ -438,7 +484,7 @@ export default function UsuariosAdmin() {
                     </div>
                     <div className="detalhe-campo">
                       <span className="campo-label">Perfil</span>
-                      <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+                      <select value={form.role} onChange={onChangeRole}>
                         <option value="PROFESSOR">PROFESSOR</option>
                         <option value="ALUNO">ALUNO</option>
                       </select>
@@ -453,7 +499,16 @@ export default function UsuariosAdmin() {
                     <div className="detalhe-campo">
                       <span className="campo-label">Equipe (somente aluno)</span>
                       {(form.role || "").toUpperCase() === "ALUNO" ? (
-                        <input type="text" value={form.equipeId} onChange={(e) => setForm({ ...form, equipeId: e.target.value })} placeholder="ID da equipe" />
+                        equipesLoading ? (
+                          <p className="campo-valor">Carregando equipes...</p>
+                        ) : (
+                          <select value={form.equipeId} onChange={(e) => setForm({ ...form, equipeId: e.target.value })}>
+                            <option value="">—</option>
+                            {equipesAtivas.map((eq) => (
+                              <option key={eq.id} value={eq.id}>{eq.nome}</option>
+                            ))}
+                          </select>
+                        )
                       ) : (
                         <input type="text" value={"—"} disabled />
                       )}
@@ -478,6 +533,38 @@ export default function UsuariosAdmin() {
           </aside>
         </div>
       )}
+      <ModalCriarUsuario
+        aberta={modalCriar}
+        onClose={() => setModalCriar(false)}
+        onUsuarioCriado={async (novo) => {
+          const roleNovo = (novo?.role || "").toUpperCase();
+          const inserir = {
+            id: novo.id,
+            nome: novo.nome || "",
+            email: novo.email || "",
+            role: roleNovo,
+            ativo: Boolean(novo.ativo ?? true),
+            foto: novo.foto || null,
+            criadoEm: novo.criadoEm || novo.createdAt || null,
+            updatedAt: novo.updatedAt || null,
+            equipeId: roleNovo === "ALUNO" ? (novo.equipeId || null) : null,
+            equipeNome: null,
+          };
+          setUsuarios((prev) => {
+            const lista = [...prev, inserir];
+            lista.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+            return lista;
+          });
+          setSelecionado(inserir);
+          if (inserir.role === "ALUNO" && inserir.equipeId) {
+            const nome = await resolverNomeEquipe(inserir.equipeId);
+            if (typeof nome !== "undefined") {
+              setUsuarios((prev) => prev.map((u) => u.id === inserir.id ? { ...u, equipeNome: nome ?? null } : u));
+              setSelecionado((prev) => prev && prev.id === inserir.id ? { ...prev, equipeNome: nome ?? null } : prev);
+            }
+          }
+        }}
+      />
     </main>
   );
 }
