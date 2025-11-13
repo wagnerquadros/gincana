@@ -1,6 +1,9 @@
 const { db } = require("../../firebase");
 const revisaoService = require("../services/revisaoService");
 const StatusRevisaoEnum = require("../models/enums/StatusRevisaoEnum");
+const { getAtividade } = require("../services/atividadesService");
+const { criarNotificacao } = require("../services/notificacoesService");
+const { obterEquipePorId } = require("../services/equipeService");
 const {
     validarEvidenciasArquivos,
     validarFiltroListagem,
@@ -92,6 +95,26 @@ async function create(req, res) {
             motivo: body.motivo,
             evidencias: body.evidencias || [],
         });
+
+        try {
+            const atv = await getAtividade(String(criado.atividadeId));
+            const nomeAtv = atv?.titulo || criado.atividadeId;
+            const equipeAutor = await obterEquipePorId(String(criado.equipeId)).catch(() => null);
+            const equipeAlvo = await obterEquipePorId(String(criado.equipeAlvoId)).catch(() => null);
+            const nomeAutor = equipeAutor?.nome || criado.equipeId;
+            const nomeAlvo = equipeAlvo?.nome || criado.equipeAlvoId;
+
+            await criarNotificacao({
+                gincanaId: String(criado.gincanaId),
+                atividadeId: String(criado.atividadeId),
+                tipo: "REVISAO_SOLICITADA",
+                titulo: `Solicitada Revisão da Atividade ${nomeAtv}`,
+                corpo: `Solicitada Revisão da Atividade ${nomeAtv}. Equipe solicitante: '${nomeAutor}' equipe alvo: '${nomeAlvo}'`,
+                status: "ENVIADA",
+            });
+        } catch (e) {
+            console.warn("Falha ao criar notificação (revisão solicitada):", e.message);
+        }
 
         return res.status(201).json(criado);
     } catch (e) {
@@ -196,6 +219,25 @@ async function updateStatus(req, res) {
             ajustePontuacao: payload.ajustePontuacao,
             usuarioId: userId,
         });
+
+        try {
+            const st = String(atualizado?.status || "");
+            if (st === StatusRevisaoEnum.DEFERIDA || st === StatusRevisaoEnum.INDEFERIDA) {
+                const atv = await getAtividade(String(atualizado.atividadeId));
+                const nome = atv?.titulo || atualizado.atividadeId;
+                const statusTxt = st.toLowerCase();
+                await criarNotificacao({
+                    gincanaId: String(atualizado.gincanaId),
+                    atividadeId: String(atualizado.atividadeId),
+                    tipo: "REVISAO_ENCERRADA",
+                    titulo: `Revisão da Atividade ${nome} encerrada`,
+                    corpo: `Revisão da Atividade ${nome} encerrada. Status: ${statusTxt}`,
+                    status: "ENVIADA",
+                });
+            }
+        } catch (e) {
+            console.warn("Falha ao criar notificação (revisão encerrada):", e.message);
+        }
 
         return res.json(atualizado);
     } catch (e) {

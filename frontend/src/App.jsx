@@ -18,6 +18,7 @@ import AtividadesProf from "./pages/prof/AtividadesProf";
 import UsuariosAdmin from "./pages/prof/UsuariosAdmin";
 import MeuPerfil from "./pages/prof/MeuPerfil";
 import RevisoesProf from "./pages/prof/RevisoesProf";
+import NotificacoesProf from "./pages/prof/NotificacoesProf";
 
 // páginas do aluno
 import DashboardAluno from "./pages/aluno/DashboardAluno";
@@ -26,6 +27,7 @@ import MinhaEquipe from "./pages/aluno/MinhaEquipe";
 import AtividadesAluno from "./pages/aluno/AtividadesAluno";
 import MeuPerfilAluno from "./pages/aluno/MeuPerfilAluno";
 import RankingAluno from "./pages/aluno/RankingAluno";
+import NotificacoesAluno from "./pages/aluno/NotificacoesAluno";
 
 export default function App() {
   return (
@@ -51,6 +53,7 @@ export default function App() {
             <Route path="gincana" element={<GincanaProf />} />
             <Route path="equipes" element={<EquipesProf />} />
             <Route path="atividades" element={<AtividadesProf />} />
+            <Route path="notificacoes" element={<NotificacoesProf />} />
             <Route path="revisoes" element={<RevisoesProf />} />
             <Route path="meu-perfil" element={<MeuPerfil />} />
 
@@ -83,6 +86,7 @@ export default function App() {
             <Route path="dashboard" element={<DashboardAluno />} />
             <Route path="gincana" element={<GincanaAluno />} />
             <Route path="/aluno/ranking" element={<RankingAluno />} />
+            <Route path="notificacoes" element={<NotificacoesAluno />} />
             <Route path="minha-equipe" element={<MinhaEquipe />} />
             <Route path="atividades" element={<AtividadesAluno />} />
             <Route path="perfil" element={<MeuPerfilAluno />} />

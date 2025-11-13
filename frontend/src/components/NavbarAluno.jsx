@@ -43,6 +43,9 @@ export default function NavbarAluno() {
                     <NavLink to="/aluno/gincana" className={linkClass}>
                         Gincana
                     </NavLink>
+                    <NavLink to="/aluno/notificacoes" className={linkClass}>
+                        Notificações
+                    </NavLink>
                     {/* NOVA ABA */}
                     <NavLink to="/aluno/ranking" className={linkClass}>
                         Ranking
@@ -96,6 +99,13 @@ export default function NavbarAluno() {
                     onClick={() => setMenuAberto(false)}
                 >
                     Gincana
+                </NavLink>
+                <NavLink
+                    to="/aluno/notificacoes"
+                    className={linkClass}
+                    onClick={() => setMenuAberto(false)}
+                >
+                    Notificações
                 </NavLink>
                 {/* NOVA ABA (mobile) */}
                 <NavLink

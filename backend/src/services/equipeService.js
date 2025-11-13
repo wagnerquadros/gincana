@@ -2,6 +2,7 @@
 const path = require("path");
 const { db } = require(path.resolve(__dirname, "../../firebase.js"));
 const Equipe = require("../models/Equipe");
+const { criarNotificacao } = require("./notificacoesService");
 
 const COLL = "equipes";
 
@@ -30,6 +31,19 @@ async function criarEquipe(equipeData) {
   };
 
   await equipeRef.set(payload);
+
+  try {
+    await criarNotificacao({
+      gincanaId: payload.gincanaId,
+      atividadeId: null,
+      tipo: "EQUIPE_CRIADA",
+      titulo: `Nova Equipe: '${payload.nome}'`,
+      corpo: `Nova Equipe: '${payload.nome}' venha participar`,
+      status: "ENVIADA",
+    });
+  } catch (e) {
+    console.warn("Falha ao criar notificação (equipe criada):", e.message);
+  }
 
   return payload; // objeto plano serializável
 }

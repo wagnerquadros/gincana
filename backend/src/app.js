@@ -19,6 +19,7 @@ const gincanasRoutes = require("./routes/gincanas");
 const atividadesRoutes = require("./routes/atividades");
 const equipesRoutes = require("./routes/equipes");
 const alunosRoutes = require("./routes/alunos");
+const notificacoesRoutes = require("./routes/notificacoes");
 
 const app = express();
 app.use(cors());
@@ -44,6 +45,7 @@ app.use("/atividades", atividadesRoutes);
 app.use("/equipes", equipesRoutes);
 app.use("/alunos", alunosRoutes);
 app.use("/revisoes", require("./routes/revisoes"));
+app.use("/notificacoes", notificacoesRoutes);
 
 // Servir arquivos estáticos de uploads (pasta fora de src/)
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));

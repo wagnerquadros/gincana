@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/client";
+import { listarEquipesPorGincana } from "../api/equipes";
 import "../styles/ModalAtividade.css"; // reaproveitando o mesmo CSS do modal de criar/editar
 
 export default function ModalEncerrarAtividade({
@@ -40,15 +41,13 @@ export default function ModalEncerrarAtividade({
 
     async function carregarEquipes() {
         try {
-            const { data } = await api.get(`/equipes/gincana/${gincanaId}`);
-            // Você pode filtrar só ativas se preferir:
-            const lista = Array.isArray(data) ? data.filter(e => e?.nome) : [];
-            // ordenar por nome
-            lista.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
-            setEquipes(lista);
+            const lista = await listarEquipesPorGincana(gincanaId, { ativo: true });
+            const filtrada = Array.isArray(lista) ? lista.filter(e => e?.nome) : [];
+            filtrada.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+            setEquipes(filtrada);
         } catch (e) {
             console.error(e);
-            setErro("Não foi possível carregar as equipes da gincana.");
+            setErro("Não foi possível carregar as equipes ativas da gincana.");
         }
     }
 
