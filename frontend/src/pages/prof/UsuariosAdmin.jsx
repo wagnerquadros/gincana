@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { listarUsuarios } from "../../api/usuarios";
+import { listarUsuarios, atualizarUsuario } from "../../api/usuarios";
 import { useAutenticacao } from "../../auth/useAutenticacao";
 import api from "../../api/client";
 import "../../styles/Usuarios.css";
-import ModalCriarUsuario from "../../components/ModalCriarUsuario";
 
 export default function UsuariosAdmin() {
   // ======= ESTADO =======
@@ -20,8 +19,8 @@ export default function UsuariosAdmin() {
   const [equipesCache, setEquipesCache] = useState({});
   // ids já consultados (evita re-busca infinita)
   const [consultados, setConsultados] = useState(new Set());
-  const [mostrarCriar, setMostrarCriar] = useState(false);
-  const [reloadTick, setReloadTick] = useState(0);
+  const [editando, setEditando] = useState(false);
+  const [form, setForm] = useState({ nome: "", email: "", role: "", ativo: true, equipeId: "" });
 
   // ======= CONTEXTO DE AUTENTICAÇÃO =======
   const { usuario } = useAutenticacao();
@@ -91,6 +90,68 @@ export default function UsuariosAdmin() {
     }
     // por fim, estado carregando
     return sel.equipeId ? "Carregando equipe..." : "—";
+  }
+
+  function iniciarEdicao() {
+    if (!selecionado) return;
+    setForm({
+      nome: selecionado.nome || "",
+      email: selecionado.email || "",
+      role: selecionado.role || "",
+      ativo: !!selecionado.ativo,
+      equipeId: (selecionado.role === "ALUNO" ? (selecionado.equipeId || "") : ""),
+    });
+    setEditando(true);
+  }
+
+  function cancelarEdicao() {
+    setEditando(false);
+  }
+
+  async function salvarEdicao() {
+    if (!selecionado) return;
+    const id = selecionado.id;
+    const payload = {
+      nome: form.nome,
+      email: form.email,
+      role: form.role,
+      ativo: form.ativo,
+    };
+    try {
+      const atualizado = await atualizarUsuario(id, payload);
+      const roleFinal = (form.role || "").toUpperCase();
+      if (roleFinal === "ALUNO" && form.equipeId) {
+        await api.patch(`/usuarios/${id}/equipe`, { equipeId: form.equipeId });
+      }
+      setUsuarios((prev) => prev.map((u) => (
+        u.id === id
+          ? {
+            ...u,
+            nome: atualizado && atualizado.nome ? atualizado.nome : form.nome,
+            email: atualizado && atualizado.email ? atualizado.email : form.email,
+            role: ((atualizado && atualizado.role) ? atualizado.role : form.role).toUpperCase(),
+            ativo: typeof (atualizado && atualizado.ativo) === "boolean" ? atualizado.ativo : form.ativo,
+            equipeId: roleFinal === "ALUNO" ? (form.equipeId || null) : null,
+          }
+          : u
+      )));
+      setSelecionado((prev) => (
+        prev && prev.id === id
+          ? {
+            ...prev,
+            nome: atualizado && atualizado.nome ? atualizado.nome : form.nome,
+            email: atualizado && atualizado.email ? atualizado.email : form.email,
+            role: ((atualizado && atualizado.role) ? atualizado.role : form.role).toUpperCase(),
+            ativo: typeof (atualizado && atualizado.ativo) === "boolean" ? atualizado.ativo : form.ativo,
+            equipeId: roleFinal === "ALUNO" ? (form.equipeId || null) : null,
+          }
+          : prev
+      ));
+      setEditando(false);
+    } catch (e) {
+      console.log(e);
+      alert("Falha ao salvar alterações");
+    }
   }
 
   // ======= BUSCA NOME DA EQUIPE (usa /equipes/:id/resumo e aceita {nome}) =======
@@ -204,19 +265,7 @@ export default function UsuariosAdmin() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [podeVer, reloadTick]);
-
-  function abrirModalCriar() {
-    setMostrarCriar(true);
-  }
-
-  function fecharModalCriar() {
-    setMostrarCriar(false);
-  }
-
-  function aoUsuarioCriado() {
-    setReloadTick((t) => t + 1);
-  }
+  }, [podeVer]);
 
   // ======= FILTRO =======
   const usuariosFiltrados = useMemo(() => {
@@ -249,7 +298,7 @@ export default function UsuariosAdmin() {
       {/* HEADER: botão + filtros */}
       <header className="usuarios-header">
         <div className="titulo-area">
-          <button className="btn btn-primary" onClick={abrirModalCriar}>➕ Cadastrar novo usuário</button>
+          <button className="btn btn-primary">➕ Cadastrar novo usuário</button>
         </div>
 
         <div className="tabs" role="tablist" aria-label="Filtros de usuários">
@@ -377,25 +426,57 @@ export default function UsuariosAdmin() {
                   <p className="campo-valor">{fmtData(selecionado.updatedAt)}</p>
                 </div>
 
-                <div className="btn-row">
-                  <button className="btn btn-primary">✏️ Editar</button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => inativarUsuario(selecionado)}>
-                    🗑️ Inativar
-                  </button>
-                </div>
+                {editando ? (
+                  <>
+                    <div className="detalhe-campo">
+                      <span className="campo-label">Nome</span>
+                      <input type="text" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+                    </div>
+                    <div className="detalhe-campo">
+                      <span className="campo-label">E-mail</span>
+                      <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                    </div>
+                    <div className="detalhe-campo">
+                      <span className="campo-label">Perfil</span>
+                      <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+                        <option value="PROFESSOR">PROFESSOR</option>
+                        <option value="ALUNO">ALUNO</option>
+                      </select>
+                    </div>
+                    <div className="detalhe-campo">
+                      <span className="campo-label">Status</span>
+                      <select value={form.ativo ? "ATIVO" : "INATIVO"} onChange={(e) => setForm({ ...form, ativo: e.target.value === "ATIVO" })}>
+                        <option value="ATIVO">Ativo</option>
+                        <option value="INATIVO">Inativo</option>
+                      </select>
+                    </div>
+                    <div className="detalhe-campo">
+                      <span className="campo-label">Equipe (somente aluno)</span>
+                      {(form.role || "").toUpperCase() === "ALUNO" ? (
+                        <input type="text" value={form.equipeId} onChange={(e) => setForm({ ...form, equipeId: e.target.value })} placeholder="ID da equipe" />
+                      ) : (
+                        <input type="text" value={"—"} disabled />
+                      )}
+                    </div>
+                    <div className="btn-row">
+                      <button className="btn btn-secondary" onClick={cancelarEdicao}>Cancelar</button>
+                      <button className="btn btn-primary" onClick={salvarEdicao}>Salvar</button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="btn-row">
+                    <button className="btn btn-primary" onClick={iniciarEdicao}>✏️ Editar</button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => inativarUsuario(selecionado)}>
+                      🗑️ Inativar
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </aside>
         </div>
-      )}
-      {mostrarCriar && (
-        <ModalCriarUsuario
-          aberta={mostrarCriar}
-          onClose={fecharModalCriar}
-          onUsuarioCriado={aoUsuarioCriado}
-        />
       )}
     </main>
   );
