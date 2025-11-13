@@ -3,6 +3,7 @@ import { listarUsuarios } from "../../api/usuarios";
 import { useAutenticacao } from "../../auth/useAutenticacao";
 import api from "../../api/client";
 import "../../styles/Usuarios.css";
+import ModalCriarUsuario from "../../components/ModalCriarUsuario";
 
 export default function UsuariosAdmin() {
   // ======= ESTADO =======
@@ -19,6 +20,8 @@ export default function UsuariosAdmin() {
   const [equipesCache, setEquipesCache] = useState({});
   // ids já consultados (evita re-busca infinita)
   const [consultados, setConsultados] = useState(new Set());
+  const [mostrarCriar, setMostrarCriar] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
 
   // ======= CONTEXTO DE AUTENTICAÇÃO =======
   const { usuario } = useAutenticacao();
@@ -201,7 +204,19 @@ export default function UsuariosAdmin() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [podeVer]);
+  }, [podeVer, reloadTick]);
+
+  function abrirModalCriar() {
+    setMostrarCriar(true);
+  }
+
+  function fecharModalCriar() {
+    setMostrarCriar(false);
+  }
+
+  function aoUsuarioCriado() {
+    setReloadTick((t) => t + 1);
+  }
 
   // ======= FILTRO =======
   const usuariosFiltrados = useMemo(() => {
@@ -234,7 +249,7 @@ export default function UsuariosAdmin() {
       {/* HEADER: botão + filtros */}
       <header className="usuarios-header">
         <div className="titulo-area">
-          <button className="btn btn-primary">➕ Cadastrar novo usuário</button>
+          <button className="btn btn-primary" onClick={abrirModalCriar}>➕ Cadastrar novo usuário</button>
         </div>
 
         <div className="tabs" role="tablist" aria-label="Filtros de usuários">
@@ -374,6 +389,13 @@ export default function UsuariosAdmin() {
             )}
           </aside>
         </div>
+      )}
+      {mostrarCriar && (
+        <ModalCriarUsuario
+          aberta={mostrarCriar}
+          onClose={fecharModalCriar}
+          onUsuarioCriado={aoUsuarioCriado}
+        />
       )}
     </main>
   );
