@@ -7,8 +7,8 @@ function normalizarStatus(s) {
   const v = String(s || "").toUpperCase().trim();
   if (v.includes("ANALIS")) return "EM_ANALISE";
   if (v.includes("ABERT")) return "ABERTA";
-  if (v.includes("DEFERID")) return "DEFERIDA";
   if (v.includes("INDEFERID")) return "INDEFERIDA";
+  if (v.includes("DEFERID")) return "DEFERIDA";
   if (v.includes("CANCELAD")) return "CANCELADA";
   return v || "DESCONHECIDO";
 }
@@ -58,13 +58,18 @@ function ListaStatus({ titulo, emoji, itens, onSelect }) {
   );
 }
 
-function ModalDetalheRevisao({ id, onClose }) {
+function ModalDetalheRevisao({ id, onClose, onUpdated }) {
   const [detalhe, setDetalhe] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [autorNome, setAutorNome] = useState("");
   const [equipeAutor, setEquipeAutor] = useState("");
   const [equipeAlvo, setEquipeAlvo] = useState("");
+  const [analistaNome, setAnalistaNome] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [parecer, setParecer] = useState("");
+  const [bonus, setBonus] = useState(0);
+  const [penalidade, setPenalidade] = useState(0);
 
   useEffect(() => {
     let cancelado = false;
@@ -80,6 +85,7 @@ function ModalDetalheRevisao({ id, onClose }) {
         const equipeId = String(data?.equipeId || "").trim();
         const alvoIdRaw = data?.equipeAlvoId;
         const alvoId = (alvoIdRaw && String(alvoIdRaw).trim() !== "undefined") ? String(alvoIdRaw).trim() : null;
+        const analistaId = String(data?.analisadoPorUsuarioId || "").trim();
 
         try {
           if (autorId) {
@@ -109,6 +115,17 @@ function ModalDetalheRevisao({ id, onClose }) {
         } catch {
           setEquipeAlvo(alvoId || "");
         }
+
+        try {
+          if (analistaId) {
+            const u = await obterUsuario(analistaId);
+            setAnalistaNome(u?.nome || analistaId);
+          } else {
+            setAnalistaNome("");
+          }
+        } catch {
+          setAnalistaNome(analistaId || "");
+        }
       } catch (e) {
         setErro("Não foi possível carregar a revisão.");
       } finally {
@@ -120,6 +137,7 @@ function ModalDetalheRevisao({ id, onClose }) {
   }, [id]);
 
   const status = normalizarStatus(detalhe?.status);
+  const concluida = status === "DEFERIDA" || status === "INDEFERIDA" || status === "CANCELADA";
 
   return (
     <div
@@ -149,6 +167,13 @@ function ModalDetalheRevisao({ id, onClose }) {
                 <div><strong>Equipe alvo</strong>: {equipeAlvo || "-"}</div>
               </div>
 
+              {concluida && (
+                <div style={{ display: "grid", gap: 8 }}>
+                  <div><strong>Analisado por</strong>: {analistaNome || "-"}</div>
+                  <div><strong>Encerrado em</strong>: {formatarData(detalhe?.atualizadoEm) || "-"}</div>
+                </div>
+              )}
+
               <div>
                 <div className="section-title">Motivo</div>
                 <div>{detalhe?.motivo || "-"}</div>
@@ -156,7 +181,17 @@ function ModalDetalheRevisao({ id, onClose }) {
 
               <div>
                 <div className="section-title">Parecer</div>
-                <div>{detalhe?.parecer || "-"}</div>
+                {status === "EM_ANALISE" ? (
+                  <textarea
+                    value={parecer}
+                    onChange={(e) => setParecer(e.target.value)}
+                    rows={3}
+                    style={{ width: "100%" }}
+                    placeholder="Digite o parecer"
+                  />
+                ) : (
+                  <div>{detalhe?.parecer || "-"}</div>
+                )}
               </div>
 
               <div>
@@ -166,7 +201,30 @@ function ModalDetalheRevisao({ id, onClose }) {
 
               <div>
                 <div className="section-title">Ajuste de pontuação</div>
-                {detalhe?.ajustePontuacao ? (
+                {status === "EM_ANALISE" ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+                    <label>
+                      <div><strong>Bônus</strong></div>
+                      <input
+                        type="number"
+                        value={bonus}
+                        onChange={(e) => setBonus(Number(e.target.value))}
+                        min={0}
+                        style={{ width: "100%" }}
+                      />
+                    </label>
+                    <label>
+                      <div><strong>Penalidade</strong></div>
+                      <input
+                        type="number"
+                        value={penalidade}
+                        onChange={(e) => setPenalidade(Number(e.target.value))}
+                        min={0}
+                        style={{ width: "100%" }}
+                      />
+                    </label>
+                  </div>
+                ) : detalhe?.ajustePontuacao ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
                     <div><strong>Bônus</strong>: {Number(detalhe.ajustePontuacao.bonus || 0)}</div>
                     <div><strong>Penalidade</strong>: {Number(detalhe.ajustePontuacao.penalidade || 0)}</div>
@@ -175,6 +233,79 @@ function ModalDetalheRevisao({ id, onClose }) {
                   </div>
                 ) : (
                   <div>-</div>
+                )}
+              </div>
+
+              <div className="btn-row">
+                {status === "ABERTA" && (
+                  <button
+                    className="btn btn-primary"
+                    disabled={enviando}
+                    onClick={async () => {
+                      try {
+                        setEnviando(true);
+                        const { data } = await api.patch(`/revisoes/${id}/status`, { status: "EM_ANALISE" });
+                        setDetalhe(data);
+                        setParecer("");
+                        onUpdated?.(data);
+                      } catch (e) {
+                        alert("Falha ao marcar como EM ANÁLISE.");
+                      } finally {
+                        setEnviando(false);
+                      }
+                    }}
+                  >
+                    Analisar
+                  </button>
+                )}
+
+                {status === "EM_ANALISE" && (
+                  <>
+                    <button
+                      className="btn btn-danger"
+                      disabled={enviando || !parecer.trim()}
+                      onClick={async () => {
+                        try {
+                          setEnviando(true);
+                          const { data } = await api.patch(`/revisoes/${id}/status`, {
+                            status: "INDEFERIDA",
+                            parecer: parecer.trim(),
+                          });
+                          setDetalhe(data);
+                          onUpdated?.(data);
+                        } catch (e) {
+                          alert("Falha ao indeferir.");
+                        } finally {
+                          setEnviando(false);
+                        }
+                      }}
+                    >
+                      Indeferir
+                    </button>
+
+                    <button
+                      className="btn btn-success"
+                      disabled={enviando || !parecer.trim()}
+                      onClick={async () => {
+                        try {
+                          setEnviando(true);
+                          const { data } = await api.patch(`/revisoes/${id}/status`, {
+                            status: "DEFERIDA",
+                            parecer: parecer.trim(),
+                            ajustePontuacao: { bonus: Number(bonus || 0), penalidade: Number(penalidade || 0) },
+                          });
+                          setDetalhe(data);
+                          onUpdated?.(data);
+                        } catch (e) {
+                          alert("Falha ao deferir.");
+                        } finally {
+                          setEnviando(false);
+                        }
+                      }}
+                    >
+                      Deferir
+                    </button>
+                  </>
                 )}
               </div>
             </>
@@ -246,7 +377,13 @@ export default function RevisoesProf() {
       </div>
 
       {mostrarModal && selecionada?.id ? (
-        <ModalDetalheRevisao id={selecionada.id} onClose={() => setMostrarModal(false)} />
+        <ModalDetalheRevisao
+          id={selecionada.id}
+          onClose={() => setMostrarModal(false)}
+          onUpdated={(upd) => {
+            setRevisoes((prev) => prev.map((r) => (r.id === upd.id ? { ...upd, _status: normalizarStatus(upd.status) } : r)));
+          }}
+        />
       ) : null}
     </main>
   );
