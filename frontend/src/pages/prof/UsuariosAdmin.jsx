@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { listarUsuarios, atualizarUsuario } from "../../api/usuarios";
+import { listarUsuarios, atualizarUsuario, absolutizarUrlTalvez } from "../../api/usuarios";
 import { obterGincanaAtiva } from "../../api/gincana";
 import { listarEquipesPorGincana } from "../../api/equipes";
 import ModalCriarUsuario from "../../components/ModalCriarUsuario";
@@ -249,7 +249,7 @@ export default function UsuariosAdmin() {
           email: u.email || "",
           role: (u.role || "").toUpperCase(),
           ativo: Boolean(u.ativo),
-          foto: u.foto || null,
+          foto: absolutizarUrlTalvez(u.foto || null),
           criadoEm: u.criadoEm || null,
           updatedAt: u.updatedAt || null,
           equipeId: u.equipeId || null, // <=== USANDO APENAS ESSE CAMPO
@@ -544,7 +544,7 @@ export default function UsuariosAdmin() {
             email: novo.email || "",
             role: roleNovo,
             ativo: Boolean(novo.ativo ?? true),
-            foto: novo.foto || null,
+            foto: absolutizarUrlTalvez(novo.foto || null),
             criadoEm: novo.criadoEm || novo.createdAt || null,
             updatedAt: novo.updatedAt || null,
             equipeId: roleNovo === "ALUNO" ? (novo.equipeId || null) : null,

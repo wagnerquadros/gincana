@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAutenticacao } from "../../auth/useAutenticacao";
-import { obterUsuario } from "../../api/usuarios";
+import { obterUsuario, absolutizarUrlTalvez } from "../../api/usuarios";
 import { obterEquipe, listarMembrosEquipe, obterPontuacaoEquipeGincana } from "../../api/equipes";
 import { obterGincanaAtiva } from "../../api/gincana";
 import api from "../../api/client";
@@ -79,7 +79,11 @@ export default function MinhaEquipe() {
 
                 // 4. Busca membros da equipe (apenas ativos)
                 const membrosAtivos = await listarMembrosEquipe(equipeId, { ativo: true });
-                setMembros(membrosAtivos);
+                const membrosNormalizados = (membrosAtivos || []).map((m) => ({
+                    ...m,
+                    foto: absolutizarUrlTalvez(m.foto ?? null),
+                }));
+                setMembros(membrosNormalizados);
 
                 // 5. Busca pontuação da equipe na gincana ativa (se houver)
                 if (gincanaAtiva?.id) {
