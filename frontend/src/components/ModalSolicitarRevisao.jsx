@@ -1,6 +1,7 @@
 // src/components/ModalSolicitarRevisao.jsx
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/client";
+import { listarEquipesPorGincana } from "../api/equipes";
 
 /**
  * ModalSolicitarRevisao
@@ -57,8 +58,8 @@ export default function ModalSolicitarRevisao({
             try {
                 setCarregandoEquipes(true);
                 setErro("");
-                const { data } = await api.get(`/equipes/gincana/${gincanaId}`);
-                setEquipes(Array.isArray(data) ? data : []);
+                const lista = await listarEquipesPorGincana(gincanaId, { ativo: true });
+                setEquipes(Array.isArray(lista) ? lista : []);
             } catch (e) {
                 console.error(e);
                 setEquipes([]);

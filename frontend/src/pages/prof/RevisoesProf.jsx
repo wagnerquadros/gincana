@@ -127,6 +127,7 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
           setAnalistaNome(analistaId || "");
         }
       } catch (e) {
+        console.log(e);
         setErro("Não foi possível carregar a revisão.");
       } finally {
         if (!cancelado) setCarregando(false);
@@ -249,6 +250,8 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
                         setParecer("");
                         onUpdated?.(data);
                       } catch (e) {
+                        console.log(e);
+                        console.log(e);
                         alert("Falha ao marcar como EM ANÁLISE.");
                       } finally {
                         setEnviando(false);
@@ -274,6 +277,7 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
                           setDetalhe(data);
                           onUpdated?.(data);
                         } catch (e) {
+                          console.log(e);
                           alert("Falha ao indeferir.");
                         } finally {
                           setEnviando(false);
@@ -297,6 +301,7 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
                           setDetalhe(data);
                           onUpdated?.(data);
                         } catch (e) {
+                          console.log(e);
                           alert("Falha ao deferir.");
                         } finally {
                           setEnviando(false);
@@ -334,6 +339,7 @@ export default function RevisoesProf() {
           .sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
         setRevisoes(norm);
       } catch (e) {
+        console.log(e);
         setErro("Não foi possível carregar revisões.");
       } finally {
         if (!cancelado) setCarregando(false);
