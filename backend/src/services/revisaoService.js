@@ -69,30 +69,40 @@ async function criarRevisao(payload) {
 }
 
 async function listar(filtros = {}) {
-    let q = col().orderBy("criadoEm", "desc");
-
+    // ✅ Evita exigir índice composto: usa no máximo 1 where
+    let q = col();
     if (filtros.gincanaId) q = q.where("gincanaId", "==", String(filtros.gincanaId));
-    if (filtros.atividadeId) q = q.where("atividadeId", "==", String(filtros.atividadeId));
-    if (filtros.equipeId) q = q.where("equipeId", "==", String(filtros.equipeId));              // autor
-    if (filtros.equipeAlvoId) q = q.where("equipeAlvoId", "==", String(filtros.equipeAlvoId));  // alvo
-    if (filtros.status) q = q.where("status", "==", String(filtros.status));
+
+    const snap = await q.get();
+    let items = [];
+    snap.forEach((doc) => items.push(Revisao.fromFirestore(doc).toObject()));
+
+    // 🔹 Filtros em memória (sem exigir índices compostos)
+    if (filtros.atividadeId) items = items.filter((x) => String(x.atividadeId) === String(filtros.atividadeId));
+    if (filtros.equipeId) items = items.filter((x) => String(x.equipeId) === String(filtros.equipeId));
+    if (filtros.equipeAlvoId) items = items.filter((x) => String(x.equipeAlvoId) === String(filtros.equipeAlvoId));
+    if (filtros.status) items = items.filter((x) => String(x.status) === String(filtros.status));
+
+    // 🔹 startAfter (por data)
+    if (filtros.startAfter) {
+        const d = new Date(filtros.startAfter);
+        if (!isNaN(d.getTime())) {
+            items = items.filter((x) => {
+                const dt = new Date(x.criadoEm);
+                return !isNaN(dt.getTime()) && dt > d;
+            });
+        }
+    }
+
+    // 🔹 Ordena por criadoEm desc e aplica limite
+    items.sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
 
     let limit = 20;
     if (filtros.limit !== undefined) {
         const n = Number(filtros.limit);
         if (!isNaN(n) && n > 0 && n <= 100) limit = n;
     }
-    q = q.limit(limit);
-
-    if (filtros.startAfter) {
-        const d = new Date(filtros.startAfter);
-        if (!isNaN(d.getTime())) q = q.startAfter(d);
-    }
-
-    const snap = await q.get();
-    const items = [];
-    snap.forEach((doc) => items.push(Revisao.fromFirestore(doc).toObject()));
-    return items;
+    return items.slice(0, limit);
 }
 
 /**
