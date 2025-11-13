@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import "../../styles/Atividades.css";
 import { obterGincanaAtiva } from "../../api/gincana";
@@ -9,6 +10,8 @@ import ModalPontuacoesAtividade from "../../components/ModalPontuacoesAtividade"
 
 
 export default function AtividadesProf() {
+  const [searchParams] = useSearchParams();
+  const selecionadaParam = searchParams.get("selecionada") || searchParams.get("atividadeId") || "";
   const [gincanaAtiva, setGincanaAtiva] = useState(null);
   const [atividades, setAtividades] = useState([]);
   const [selecionada, setSelecionada] = useState(null);
@@ -40,6 +43,13 @@ export default function AtividadesProf() {
     // limpamos a seleção quando a lista muda (evita item “fantasma”)
     setSelecionada(null);
   }, [atividades]);
+
+  useEffect(() => {
+    if (!selecionadaParam) return;
+    if (!atividades || atividades.length === 0) return;
+    const a = atividades.find((x) => String(x.id) === String(selecionadaParam));
+    if (a) setSelecionada(a);
+  }, [atividades, selecionadaParam]);
 
   function abrirModalEncerrar() {
     if (!selecionada) return;

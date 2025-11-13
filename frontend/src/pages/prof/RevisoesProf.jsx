@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { obterUsuario } from "../../api/usuarios";
 import { obterEquipe } from "../../api/equipes";
@@ -59,6 +60,7 @@ function ListaStatus({ titulo, emoji, itens, onSelect }) {
 }
 
 function ModalDetalheRevisao({ id, onClose, onUpdated }) {
+  const navigate = useNavigate();
   const [detalhe, setDetalhe] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -70,6 +72,8 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
   const [parecer, setParecer] = useState("");
   const [bonus, setBonus] = useState(0);
   const [penalidade, setPenalidade] = useState(0);
+  const [atividadeId, setAtividadeId] = useState("");
+  const [atividadeTitulo, setAtividadeTitulo] = useState("");
 
   useEffect(() => {
     let cancelado = false;
@@ -86,6 +90,7 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
         const alvoIdRaw = data?.equipeAlvoId;
         const alvoId = (alvoIdRaw && String(alvoIdRaw).trim() !== "undefined") ? String(alvoIdRaw).trim() : null;
         const analistaId = String(data?.analisadoPorUsuarioId || "").trim();
+        const atvId = String(data?.atividadeId || data?.atividade?.id || "").trim();
 
         try {
           if (autorId) {
@@ -125,6 +130,21 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
           }
         } catch {
           setAnalistaNome(analistaId || "");
+        }
+
+        try {
+          if (atvId) {
+            setAtividadeId(atvId);
+            const rAtv = await api.get(`/atividades/${atvId}`);
+            const atv = rAtv?.data;
+            setAtividadeTitulo(atv?.titulo || atvId);
+          } else {
+            setAtividadeId("");
+            setAtividadeTitulo("");
+          }
+        } catch {
+          setAtividadeId(atvId || "");
+          setAtividadeTitulo(atvId || "");
         }
       } catch (e) {
         console.log(e);
@@ -178,6 +198,24 @@ function ModalDetalheRevisao({ id, onClose, onUpdated }) {
               <div>
                 <div className="section-title">Motivo</div>
                 <div>{detalhe?.motivo || "-"}</div>
+              </div>
+
+              <div>
+                <div className="section-title">Atividade</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>{atividadeTitulo || atividadeId || "-"}</span>
+                  {atividadeId && (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        navigate(`/prof/atividades?selecionada=${atividadeId}`);
+                        onClose?.();
+                      }}
+                    >
+                      Abrir na aba Atividades
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>
