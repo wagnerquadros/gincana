@@ -52,6 +52,9 @@ export default function NavbarProfessor() {
           <NavLink to="/prof/atividades" className={linkClass}>
             Atividades
           </NavLink>
+          <NavLink to="/prof/revisoes" className={linkClass}>
+            Revisões
+          </NavLink>
           <NavLink to="/prof/meu-perfil" className={linkClass}>
             Meu Perfil
           </NavLink>
@@ -96,6 +99,9 @@ export default function NavbarProfessor() {
         </NavLink>
         <NavLink to="/prof/atividades" className={linkClass} onClick={() => setMenuAberto(false)}>
           Atividades
+        </NavLink>
+        <NavLink to="/prof/revisoes" className={linkClass} onClick={() => setMenuAberto(false)}>
+          Revisões
         </NavLink>
         <NavLink to="/prof/meu-perfil" className={linkClass} onClick={() => setMenuAberto(false)}>
           Meu Perfil

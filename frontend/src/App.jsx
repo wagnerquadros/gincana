@@ -17,6 +17,7 @@ import EquipesProf from "./pages/prof/EquipesProf";
 import AtividadesProf from "./pages/prof/AtividadesProf";
 import UsuariosAdmin from "./pages/prof/UsuariosAdmin";
 import MeuPerfil from "./pages/prof/MeuPerfil";
+import RevisoesProf from "./pages/prof/RevisoesProf";
 
 // páginas do aluno
 import DashboardAluno from "./pages/aluno/DashboardAluno";
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="gincana" element={<GincanaProf />} />
             <Route path="equipes" element={<EquipesProf />} />
             <Route path="atividades" element={<AtividadesProf />} />
+            <Route path="revisoes" element={<RevisoesProf />} />
             <Route path="meu-perfil" element={<MeuPerfil />} />
 
             {/* Somente STAFF/ADM */}
