@@ -19,6 +19,7 @@ export default function RankingInlineGincana() {
   const [isMobile, setIsMobile] = useState(false)
   const [mostrarModal, setMostrarModal] = useState(false)
 
+
   // Detectar tamanho da tela de forma mais precisa
   useEffect(() => {
     const checkMobile = () => {
@@ -44,6 +45,7 @@ export default function RankingInlineGincana() {
           return
         }
         setGincana(ativa)
+        
 
         // ✅ OTIMIZAÇÃO: Busca ranking completo em uma única requisição
         const { ranking } = await obterRankingGincana(ativa.id)
