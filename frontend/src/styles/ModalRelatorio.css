@@ -1,0 +1,191 @@
+/* Fundo escuro translúcido da tela */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    z-index: 999;
+}
+
+/* Modal maior e branco */
+.modal-relatorio {
+    background: #ffffff;
+    color: #1e1e1e;
+    width: 1000px;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.25);
+    animation: modalFadeIn 0.25s ease-out;
+}
+
+/* Cabeçalho */
+.modal-relatorio .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-relatorio .modal-header h2 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.modal-relatorio .modal-close {
+    background: transparent;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Corpo */
+.modal-relatorio .modal-body {
+    padding: 10px 0;
+}
+
+/* Filtros com cor suave */
+.modal-relatorio .filtros-relatorio {
+    background: #edf6ff; /* azul clarinho elegante */
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #c4ddf5;
+    margin-bottom: 20px;
+}
+
+.modal-relatorio .filtros-relatorio h3 {
+    margin-bottom: 12px;
+    color: #0d47a1;
+}
+
+.modal-relatorio .filtros-relatorio label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.modal-relatorio .filtros-relatorio select {
+    background: white;
+    border: 1px solid #9bbad6;
+    padding: 8px;
+    color: #333;
+    border-radius: 6px;
+    margin-top: 5px;
+}
+
+/* Pré-visualização com destaque suave */
+.modal-relatorio .preview-relatorio {
+    background: #fff7ed; /* laranja suave, quente e agradável */
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #f3d3b0;
+}
+
+.modal-relatorio .preview-relatorio h3 {
+    margin-bottom: 12px;
+    color: #e65100;
+}
+
+/* Tabela com cores vivas porém leves */
+.modal-relatorio .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.modal-relatorio .preview-table thead {
+    background: #ffe2c6; /* tom laranja pastel */
+}
+
+.modal-relatorio .preview-table th {
+    padding: 12px;
+    border-bottom: 2px solid #f3b781;
+    color: #b65c00;
+    font-weight: bold;
+}
+
+.modal-relatorio .preview-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #f0cda8;
+    color: #444;
+}
+
+/* Hover suave */
+.modal-relatorio .preview-table tr:hover {
+    background: #fff3e5;
+}
+
+/* Rodapé */
+.modal-relatorio .modal-footer {
+    margin-top: 22px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Botões (isolados e sem afetar ranking) */
+.modal-relatorio .btn-exportar,
+.modal-relatorio .btn-cancelar {
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+/* Verde EXCEL */
+.modal-relatorio .btn-exportar-excel {
+    background: #2e7d32;
+    color: white;
+}
+
+.modal-relatorio .btn-exportar-excel:hover {
+    background: #3fa046;
+}
+
+/* Azul CSV */
+.modal-relatorio .btn-exportar-csv {
+    background: #0277bd;
+    color: white;
+}
+
+.modal-relatorio .btn-exportar-csv:hover {
+    background: #039be5;
+}
+
+/* Cinza FECHAR */
+.modal-relatorio .btn-cancelar {
+    background: #666;
+    color: white;
+}
+
+.modal-relatorio .btn-cancelar:hover {
+    background: #888;
+}
+
+/* Animação */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+

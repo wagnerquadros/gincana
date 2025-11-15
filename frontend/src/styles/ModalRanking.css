@@ -364,6 +364,16 @@
     font-size: 0.875rem;
     line-height: 1.2;
   }
+
+  .btn-relatorios-detalhados {
+    background-color: #4b7bec;
+    border: 1px solid #3867d6;
+    color: #fff;
+}
+
+.btn-relatorios-detalhados:hover {
+    background-color: #3867d6;
+}
   
   /* ==========================================
      LAYOUT MOBILE
