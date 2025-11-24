@@ -18,18 +18,23 @@ export default function Login() {
     setCarregando(true);
 
     try {
-      // 1) autentica
-      await entrar(email, senha);
+      // 1) autentica e OBTÉM o usuário
+      const user = await entrar(email, senha);
+      const role = (user?.role || "").toUpperCase();
 
-      // 2) checa no backend se há gincana ATIVA
+      // 2) checa gincana ativa (só para painéis, se precisar)
       const temAtiva = await existeGincanaAtiva();
 
-      // 3) decide rota
-      if (temAtiva) {
-        navigate("/prof/dashboard");
+      // 3) decide rota conforme papel
+      const isStaff = role === "ADM" || role === "PROFESSOR";
+      if (isStaff) {
+        navigate(temAtiva ? "/prof/dashboard" : "/prof/gincana");
+      } else if (role === "ALUNO") {
+        // para aluno, manda SEMPRE para o painel do aluno
+        navigate("/aluno/dashboard");
       } else {
-        // se não houver, tenta /prof/setup (apenas ADM verá; professor será redirecionado pelo guard)
-        navigate("/prof/setup");
+        // fallback seguro (caso venha role inesperada)
+        navigate("/aluno/dashboard");
       }
     } catch (err) {
       console.error(err);
@@ -43,7 +48,7 @@ export default function Login() {
     <div className="login-bg">
       <div className="login-card" role="dialog" aria-labelledby="titulo-login">
         {/* Ícone da taça */}
-        <div className="trophy-wrap" aria-hidden="true">
+        <div className="trophy-wrap btn-primary" aria-hidden="true">
           <svg
             className="trophy"
             viewBox="0 0 24 24"
@@ -97,7 +102,7 @@ export default function Login() {
             autoComplete="current-password"
           />
 
-          <button type="submit" className="btn-login" disabled={carregando}>
+          <button type="submit" className="btn-login btn-primary" disabled={carregando}>
             {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>

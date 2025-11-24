@@ -1,5 +1,4 @@
 import { useAutenticacao } from "../auth/useAutenticacao";
-
 export default function Home() {
   const { usuario, sair } = useAutenticacao();
 

@@ -1,0 +1,337 @@
+/* Minha Equipe - Estilos */
+
+.minha-equipe-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Cabeçalho da equipe */
+.me-header-equipe {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.me-titulo-equipe {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.me-subtitulo {
+    margin: 4px 0 0 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.me-btn-trocar {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+/* Estado sem equipe */
+.me-sem-equipe {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.me-mensagem {
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+/* Pontuação */
+.me-pontuacao-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    padding: 16px 0;
+}
+
+.me-pontuacao-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    border-radius: 12px;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.me-pontuacao-item:hover {
+    background: #f3f4f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.me-pontuacao-item.me-total {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.me-pontuacao-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.me-pontuacao-item.me-total .me-pontuacao-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.me-pontuacao-valor {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.me-pontuacao-valor.me-pontos {
+    color: #2563eb;
+}
+
+.me-pontuacao-valor.me-bonus {
+    color: #059669;
+}
+
+.me-pontuacao-valor.me-penalidades {
+    color: #dc2626;
+}
+
+.me-total-valor {
+    color: #ffffff;
+    font-size: 2.5rem;
+}
+
+/* Lista de membros */
+.me-membros-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.me-membro-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.me-membro-item:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.me-membro-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #e5e7eb;
+}
+
+.me-membro-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.me-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.me-membro-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.me-membro-nome {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.me-badge-eu {
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #bfdbfe;
+}
+
+.me-membro-email {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.me-vazio {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+/* Alert de erro */
+.alert-erro {
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #b91c1c;
+    font-size: 0.9rem;
+}
+
+/* Botões */
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+/* Card padrão */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.card-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #111827;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .minha-equipe-container {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .me-header-equipe {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .me-titulo-equipe {
+        font-size: 1.5rem;
+    }
+
+    .me-btn-trocar {
+        width: 100%;
+    }
+
+    .me-pontuacao-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .me-pontuacao-item.me-total {
+        grid-column: 1 / -1;
+    }
+
+    .me-pontuacao-valor {
+        font-size: 1.5rem;
+    }
+
+    .me-total-valor {
+        font-size: 2rem;
+    }
+
+    .me-membro-item {
+        padding: 12px;
+    }
+
+    .me-membro-avatar {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .me-pontuacao-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .me-pontuacao-item.me-total {
+        grid-column: 1;
+    }
+
+    .me-membro-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .me-membro-avatar {
+        align-self: center;
+    }
+}

@@ -1,0 +1,422 @@
+/* -----------------------------
+   Global base — NÃO altera layout
+   Objetivo: tokens, resets leves,
+   utilitários comuns e primitivos
+-------------------------------- */
+
+/* Design tokens (cores, raios, sombras, espaçamentos) */
+:root {
+    /* Paleta base (mantém identidade atual) */
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --text: #111827;
+    --line: #e5e7eb;
+
+    --blue: #3b82f6;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --purple: #8b5cf6;
+    --red: #ef4444;
+
+    /* Marca destacada (chips/abas) */
+    --brand: #f59e0b;
+
+    /* Tipografia */
+    --font-sans: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+
+    /* Raios & sombras */
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+
+    /* Espaçamentos utilitários (opcional) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+}
+
+/* Reset leve / padrão de tipografia */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.35;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Elementos básicos */
+img,
+svg,
+video,
+canvas {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+}
+
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+/* -----------------------------
+   Primitivos reutilizáveis
+-------------------------------- */
+
+/* Contêiner de página padrão (usado em várias telas) */
+.page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-4);
+}
+
+/* Cards */
+.card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: var(--space-4);
+}
+
+.card-elev {
+    box-shadow: 0 6px 16px rgba(2, 6, 23, 0.06);
+}
+
+.section-title {
+    margin: 0 0 var(--space-3) 0;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Botões (mantém compat com variações existentes) */
+.btn {
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-weight: 600;
+    transition: transform 0.04s ease, opacity 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+/* Mapas de variantes — NÃO mudam as cores atuais dos seus arquivos;
+   apenas criam aliases para quem usa "btn-primary/secondary/danger/success" */
+.btn-primary {
+    background: #4f46e5;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    opacity: .95;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #111827;
+    border: 1px solid var(--line);
+}
+
+.btn-secondary:hover {
+    opacity: .95;
+}
+
+.btn-danger {
+    background: var(--red);
+    color: #fff;
+}
+
+.btn-danger:hover {
+    opacity: .95;
+}
+
+.btn-success {
+    background: #16a34a;
+    color: #fff;
+    border: 1px solid #16a34a;
+}
+
+.btn-success:hover {
+    background: #15803d;
+    border-color: #15803d;
+}
+
+/* Compatibilidade com classes já usadas em alguns CSS */
+.btn.primary {
+    background: #4f46e5;
+    color: #fff;
+}
+
+.btn.success {
+    background: #22c55e;
+    color: #fff;
+}
+
+.btn.ghost {
+    background: #f3f4f6;
+    color: #111827;
+    border: 1px solid var(--line);
+}
+
+/* Layouts de botões frequentes */
+.btn-row {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+/* Chips/Tabs simples (abas de filtros) */
+.tab-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: #374151;
+    font-weight: 600;
+}
+
+.tab-chip.active {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #7c2d12;
+}
+
+/* Badges genéricos */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #c7d2fe;
+    background: #eef2ff;
+    color: #3730a3;
+}
+
+/* Alerts */
+.alert-erro {
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+    border-radius: var(--radius-md);
+}
+
+/* Listas e tabelas utilitárias (usadas por múltiplas telas) */
+.list-unstyled {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.table-scroll {
+    overflow: auto;
+}
+
+.table table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+.table th,
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-size: 14px;
+}
+
+.table th {
+    color: #374151;
+    background: #f9fafb;
+    position: sticky;
+    top: 0;
+}
+
+/* Utilitários rápidos */
+.center {
+    text-align: center;
+}
+
+.strong {
+    font-weight: 600;
+}
+
+/* Grids genéricos (mantém padrões existentes) */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+}
+
+@media (max-width: 1024px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Estados vazios (aparecem em várias telas) */
+.eq-vazio {
+    padding: 16px;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-md);
+    background: #fff;
+}
+
+/* Inputs e labels padrões (harmonizam com Login/Modais) */
+.label {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.input,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: var(--text);
+}
+
+.input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #c7d2fe;
+    box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.45);
+}
+
+/* Helpers de cor (pontos/ranking/dots frequentes) */
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.dot.red {
+    background: #ef4444;
+}
+
+.dot.blue {
+    background: var(--blue);
+}
+
+.dot.green {
+    background: var(--green);
+}
+
+.dot.yellow {
+    background: var(--orange);
+}
+
+/* Posições/pódio (mantém visual de ranking) */
+.pos {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    font-weight: 700;
+    border: 1px solid #e5e7eb;
+}
+
+.pos.gold {
+    background: #fef3c7;
+    border-color: #fde68a;
+}
+
+.pos.silver {
+    background: #f3f4f6;
+}
+
+.pos.bronze {
+    background: #fde68a;
+}
+
+/* Container de conteúdo (usado em painéis) */
+.content {
+    width: min(1200px, 100%);
+    margin: 24px auto 40px;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Topbar genérica (Navbar específica continua no seu CSS de Navbar) */
+.topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Responsividade global mínima */
+@media (max-width: 640px) {
+    .section-title {
+        font-size: 1.05rem;
+    }
+}

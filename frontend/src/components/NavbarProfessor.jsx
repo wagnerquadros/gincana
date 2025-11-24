@@ -1,26 +1,20 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAutenticacao } from "../auth/useAutenticacao";
+import { LogOut } from "lucide-react"; // ícone de saída
 import "../styles/Navbar.css";
 
 export default function NavbarProfessor() {
   const [menuAberto, setMenuAberto] = useState(false);
-  const { usuario, sair } = useAutenticacao(); // se seu hook usa "logout", troque por logout()
+  const { sair } = useAutenticacao();
 
-  // papel do usuário
-  const role = (usuario?.role || "").toUpperCase();
-  const isADM = role === "ADM";
-
-  // helper para className do NavLink (garante aplicar "active")
   const linkClass = ({ isActive }) =>
     isActive ? "nav-link active" : "nav-link";
-  const linkClassAdmin = ({ isActive }) =>
-    isActive ? "nav-link nav-link-admin active" : "nav-link nav-link-admin";
 
   return (
     <header className="nav-wrap">
       <div className="nav-inner">
-        {/* ESQUERDA — brand */}
+        {/* ESQUERDA — logo */}
         <div className="brand">
           <div className="brand-ico" aria-hidden="true">
             <svg
@@ -43,44 +37,42 @@ export default function NavbarProfessor() {
 
         {/* CENTRO — abas */}
         <nav className="nav-center">
-          {/* SOMENTE ADM: "Gerenciamento" na frente */}
-          {isADM && (
-            <NavLink to="/prof/gerenciamento" className={linkClassAdmin}>
-              <span>Gerenciamento</span>
-            </NavLink>
-          )}
-
           <NavLink to="/prof/dashboard" className={linkClass}>
-            <span>Dashboard</span>
+            Dashboard
           </NavLink>
           <NavLink to="/prof/gincana" className={linkClass}>
-            <span>Gincana</span>
+            Gincana
+          </NavLink>
+          <NavLink to="/prof/usuarios" className={linkClass}>
+            Usuários
           </NavLink>
           <NavLink to="/prof/equipes" className={linkClass}>
-            <span>Equipes</span>
+            Equipes
           </NavLink>
           <NavLink to="/prof/atividades" className={linkClass}>
-            <span>Atividades</span>
+            Atividades
           </NavLink>
-          <NavLink to="/prof/ranking" className={linkClass}>
-            <span>Ranking</span>
+          <NavLink to="/prof/notificacoes" className={linkClass}>
+            Notificações
+          </NavLink>
+          <NavLink to="/prof/revisoes" className={linkClass}>
+            Revisões
+          </NavLink>
+          <NavLink to="/prof/meu-perfil" className={linkClass}>
+            Meu Perfil
           </NavLink>
         </nav>
 
-        {/* DIREITA — role + sair + burger (mobile) */}
+        {/* DIREITA — sair + menu burger */}
         <div className="user-side">
-          <div className="role-badge" title="Papel do usuário">
-            <span className="role-dot" />
-            <span className="role-text">
-              {role === "ADM" ? "Administrador" : "Professor"}
-            </span>
-          </div>
-
-          <button className="btn-sair" onClick={() => sair?.()}>
-            Sair
+          <button
+            className="btn-sair"
+            onClick={() => sair?.()}
+            title="Sair do sistema"
+          >
+            <LogOut size={18} strokeWidth={2} />
           </button>
 
-          {/* burger só aparece no mobile */}
           <button
             className="btn-burger"
             aria-label="Abrir menu"
@@ -96,61 +88,33 @@ export default function NavbarProfessor() {
 
       {/* MENU MOBILE */}
       <div className={`mobile-menu ${menuAberto ? "show" : ""}`}>
-        {/* SOMENTE ADM: "Gerenciamento" aparece primeiro */}
-        {isADM && (
-          <NavLink
-            to="/prof/gerenciamento"
-            className={linkClassAdmin}
-            onClick={() => setMenuAberto(false)}
-          >
-            Gerenciamento
-          </NavLink>
-        )}
-
-        <NavLink
-          to="/prof/dashboard"
-          className={linkClass}
-          onClick={() => setMenuAberto(false)}
-        >
+        <NavLink to="/prof/dashboard" className={linkClass} onClick={() => setMenuAberto(false)}>
           Dashboard
         </NavLink>
-        <NavLink
-          to="/prof/gincana"
-          className={linkClass}
-          onClick={() => setMenuAberto(false)}
-        >
+        <NavLink to="/prof/gincana" className={linkClass} onClick={() => setMenuAberto(false)}>
           Gincana
         </NavLink>
-        <NavLink
-          to="/prof/equipes"
-          className={linkClass}
-          onClick={() => setMenuAberto(false)}
-        >
+        <NavLink to="/prof/usuarios" className={linkClass} onClick={() => setMenuAberto(false)}>
+          Usuários
+        </NavLink>
+        <NavLink to="/prof/equipes" className={linkClass} onClick={() => setMenuAberto(false)}>
           Equipes
         </NavLink>
-        <NavLink
-          to="/prof/atividades"
-          className={linkClass}
-          onClick={() => setMenuAberto(false)}
-        >
+        <NavLink to="/prof/atividades" className={linkClass} onClick={() => setMenuAberto(false)}>
           Atividades
         </NavLink>
-        <NavLink
-          to="/prof/ranking"
-          className={linkClass}
-          onClick={() => setMenuAberto(false)}
-        >
-          Ranking
+        <NavLink to="/prof/notificacoes" className={linkClass} onClick={() => setMenuAberto(false)}>
+          Notificações
         </NavLink>
-
-        {/* Dica: se quiser o botão SAIR funcional no menu mobile, descomente abaixo
-        <button
-          style={{ marginTop: 6, padding: "8px 14px", borderRadius: 10, border: "1px solid var(--nav-line)", background: "#f8fafc", fontWeight: 800 }}
-          onClick={() => { setMenuAberto(false); sair?.(); }}
-        >
-          Sair
+        <NavLink to="/prof/revisoes" className={linkClass} onClick={() => setMenuAberto(false)}>
+          Revisões
+        </NavLink>
+        <NavLink to="/prof/meu-perfil" className={linkClass} onClick={() => setMenuAberto(false)}>
+          Meu Perfil
+        </NavLink>
+        <button className="btn-sair-mobile" onClick={() => sair?.()}>
+          <LogOut size={16} /> Sair
         </button>
-        */}
       </div>
     </header>
   );

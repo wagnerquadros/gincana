@@ -19,4 +19,16 @@ router.get(
   ctrl.getOne
 );
 
+router.patch(
+  "/:id/equipe",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  ctrl.updateEquipe
+);
+
+router.get(
+  "/por-equipe/:equipeId",
+  authorizeRoles(RoleEnum.ADM, RoleEnum.PROFESSOR, RoleEnum.ALUNO),
+  ctrl.listPorEquipe
+);
+
 module.exports = router;

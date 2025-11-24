@@ -2,6 +2,7 @@
 const path = require("path");
 const { db } = require(path.resolve(__dirname, "../../firebase.js"));
 const Equipe = require("../models/Equipe");
+const { criarNotificacao } = require("./notificacoesService");
 
 const COLL = "equipes";
 
@@ -30,6 +31,19 @@ async function criarEquipe(equipeData) {
   };
 
   await equipeRef.set(payload);
+
+  try {
+    await criarNotificacao({
+      gincanaId: payload.gincanaId,
+      atividadeId: null,
+      tipo: "EQUIPE_CRIADA",
+      titulo: `Nova Equipe: '${payload.nome}'`,
+      corpo: `Nova Equipe: '${payload.nome}' venha participar`,
+      status: "ENVIADA",
+    });
+  } catch (e) {
+    console.warn("Falha ao criar notificação (equipe criada):", e.message);
+  }
 
   return payload; // objeto plano serializável
 }
@@ -92,10 +106,39 @@ async function deletarEquipe(id) {
   return { ok: true, message: "Equipe deletada com sucesso", id };
 }
 
+
+async function listarEquipesPorGincana({ gincanaId, ativo } = {}) {
+  if (!db) throw new Error("Firebase não inicializado");
+  if (!isStr(gincanaId)) throw new Error("gincanaId é obrigatório");
+
+  // 🔹 Somente 1 where no Firestore (evita índice composto)
+  const qs = await db
+    .collection(COLL)
+    .where("gincanaId", "==", gincanaId.trim())
+    .get();
+
+  // Converte pra objeto plano
+  let equipes = qs.docs.map((d) => {
+    const e = Equipe.fromDoc(d);
+    return e?.toObject ? e.toObject() : e;
+  });
+
+  // 🔹 Filtro opcional em memória (não exige índice)
+  if (typeof ativo === "boolean") {
+    equipes = equipes.filter((e) => !!e?.ativo === !!ativo);
+  }
+
+  // (Opcional) ordenar por nome, se quiser
+  equipes.sort((a, b) => (a?.nome || "").localeCompare(b?.nome || "", "pt-BR"));
+
+  return equipes;
+}
+
 module.exports = {
   criarEquipe,
   listarEquipes,
   obterEquipePorId,
   atualizarEquipe,
   deletarEquipe,
+  listarEquipesPorGincana,
 };

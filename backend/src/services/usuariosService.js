@@ -1,6 +1,6 @@
 // src/services/usuariosService.js
 const { db } = require("../../firebase");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const RoleEnum = require("../models/enums/RoleEnum");
 
 const COLL = "usuarios";
@@ -39,8 +39,24 @@ async function listAll({ limit = 50 } = {}) {
     .orderBy("criadoEm", "desc")
     .limit(limit)
     .get();
-  return qs.docs.map((d) => sanitize({ id: d.id, ...d.data() }));
+
+  return qs.docs.map((d) => {
+    const data = d.data();
+
+    return sanitize({
+      id: d.id,
+      nome: data.nome,
+      foto: data.foto ?? null,
+      email: data.email,
+      role: data.role,
+      ativo: data.ativo,
+      criadoEm: data.criadoEm,
+      updatedAt: data.updatedAt,
+      equipeId: data.equipeId ?? null,
+    });
+  });
 }
+
 
 function assertRole(role) {
   const roles = Object.values(RoleEnum);
@@ -140,6 +156,72 @@ async function getAlunoById(id) {
   return sanitize(u);
 }
 
+
+async function updateAlunoEquipe(id, equipeId) {
+  if (!id) throw new Error("ID do aluno é obrigatório");
+  if (!equipeId) throw new Error("equipeId é obrigatório");
+
+  const user = await getById(id);
+  if (!user) throw new Error("Usuário não encontrado");
+  if (user.role !== RoleEnum.ALUNO) {
+    throw new Error("Somente usuários com role ALUNO podem receber equipe");
+  }
+
+  const update = {
+    equipeId: String(equipeId).trim(),
+    updatedAt: new Date(),
+  };
+
+  await db.collection(COLL).doc(id).set(update, { merge: true });
+  return sanitize({ ...user, ...update });
+}
+
+// 🔹 Lista alunos por equipe (evita índice composto usando 1 where)
+async function listAlunosPorEquipe(equipeId, { ativo } = {}) {
+  if (!equipeId) throw new Error("equipeId é obrigatório");
+
+  // 1 where: equipeId == ...  (sem exigir índice composto)
+  const qs = await db
+    .collection(COLL)
+    .where("equipeId", "==", String(equipeId).trim())
+    .get();
+
+  // Converte e filtra role em memória (se quiser garantir ALUNO)
+  let itens = qs.docs.map((d) => sanitize({ id: d.id, ...d.data() }));
+
+  itens = itens.filter((u) => u.role === RoleEnum.ALUNO);
+
+  if (typeof ativo === "boolean") {
+    itens = itens.filter((u) => !!u.ativo === ativo);
+  }
+
+  // ordena por nome (opcional)
+  itens.sort((a, b) => (a?.nome || "").localeCompare(b?.nome || "", "pt-BR"));
+
+  return itens;
+}
+
+
+async function verificarSenhaAtual(id, senhaAtual) {
+  const u = await getById(id);
+  if (!u) return false;
+  const hash = u.senha || "";
+  if (!hash) return false;
+  return await bcrypt.compare(String(senhaAtual), hash);
+}
+
+async function updateSenha(id, senhaNova) {
+  if (!senhaNova || String(senhaNova).length < 6) {
+    throw new Error("A senha deve ter pelo menos 6 caracteres");
+  }
+  const hash = await bcrypt.hash(String(senhaNova), 12);
+  await db.collection(COLL).doc(id).set(
+    { senha: hash, updatedAt: new Date() },
+    { merge: true }
+  );
+  return true;
+}
+
 module.exports = {
   getById,
   getByEmail,
@@ -150,4 +232,7 @@ module.exports = {
   softDelete,
   listAlunos,
   getAlunoById,
+  updateAlunoEquipe,
+  listAlunosPorEquipe,
+  verificarSenhaAtual,
 };

@@ -1,0 +1,68 @@
+:root {
+    --modal-padding: 16px;
+    --modal-radius: 16px;
+    --modal-gap: 12px;
+    --modal-max-width: 720px;
+    --modal-margin-v: 24px;
+    /* margem vertical mínima vs viewport */
+    --modal-bg: #ffffff;
+    --backdrop: rgba(0, 0, 0, 0.55);
+}
+
+/* backdrop cobre a tela toda */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--backdrop);
+    display: grid;
+    place-items: center;
+    z-index: 9999;
+}
+
+/* contêiner do modal (o scale será aplicado nele) */
+.modal-caixa {
+    background: var(--modal-bg);
+    border-radius: var(--modal-radius);
+    width: min(92vw, var(--modal-max-width));
+    /* sem max-height: o JS vai escalar se passar do viewport */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    transform-origin: top center;
+    will-change: transform;
+}
+
+/* layout interno: header / corpo / footer */
+.modal-conteudo {
+    display: flex;
+    flex-direction: column;
+    padding: var(--modal-padding);
+    gap: var(--modal-gap);
+}
+
+.modal-header,
+.modal-footer {
+    flex: 0 0 auto;
+}
+
+.modal-titulo {
+    margin: 0;
+    font-size: clamp(18px, 2.2vw, 22px);
+    font-weight: 700;
+}
+
+.modal-corpo {
+    /* Importante: NÃO rolar! Vamos escalar via JS para caber */
+    flex: 0 0 auto;
+}
+
+.modal-fechar {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* acessibilidade: bloquear scroll do body quando o modal abre */
+body.modal-aberto {
+    overflow: hidden;
+}

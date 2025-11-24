@@ -1,132 +1,35 @@
-:root {
-  --bg: #f6f8fb;
-  --card: #ffffff;
-  --muted: #6b7280;
-  --text: #111827;
-  --line: #e5e7eb;
-  --blue: #3b82f6;
-  --green: #10b981;
-  --orange: #f59e0b;
-  --purple: #8b5cf6;
-  --brand: #f59e0b;
-  --shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
-}
+/* ====== Dashboard.css (refatorado) ======
+   Usa global.css para tokens, cards, botões, grid, tabela, etc.
+   Mantém 100% da aparência anterior.
+=========================================== */
 
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
-}
-
-/* Layout base */
+/* Layout base do painel */
 .dash {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
-.content {
-  width: min(1200px, 100%);
-  margin: 24px auto 40px;
-  padding: 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
 
-/* Topbar */
-.topbar {
-  background: #fff;
-  border-bottom: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-}
-.brand-icon {
-  font-size: 20px;
-}
-.brand-name {
-  font-size: 16px;
-}
-.nav {
-  display: flex;
-  gap: 8px;
-}
-.nav-item {
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: #374151;
-  text-decoration: none;
-  font-size: 14px;
-  cursor: default;
-}
-.nav-item.active {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  color: #7c2d12;
-}
-.userbox {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.badge {
-  background: #eef2ff;
-  color: #3730a3;
-  border: 1px solid #c7d2fe;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.link {
-  background: none;
-  border: none;
-  color: #2563eb;
-  font-size: 14px;
-  cursor: pointer;
-}
+/* A .content já existe no global com largura/padding.
+   Caso o Dashboard precise de mais espaçamento, descomente:
+   .content { gap: 16px; }
+*/
 
-/* Cards / seções */
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 16px;
-}
-.section-title {
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 10px;
-}
-
-/* Métricas */
+/* =========================
+   Métricas (cards KPIs)
+========================= */
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
+
 .metric {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .metric-icon {
   width: 44px;
   height: 44px;
@@ -136,41 +39,43 @@ body {
   font-size: 18px;
   color: #fff;
 }
+
 .bg-blue {
   background: var(--blue);
 }
+
 .bg-green {
   background: var(--green);
 }
+
 .bg-orange {
   background: var(--orange);
 }
+
 .bg-purple {
   background: var(--purple);
 }
+
 .metric-title {
   font-size: 13px;
   color: var(--muted);
 }
+
 .metric-value {
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1;
 }
 
-/* Duas colunas */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-/* Listas */
+/* =========================
+   Listas do dashboard
+========================= */
 .list .items {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
 .item {
   display: flex;
   align-items: center;
@@ -181,153 +86,109 @@ body {
   margin-bottom: 10px;
   background: #fafafa;
 }
+
 .item-title {
   font-weight: 600;
 }
+
 .item-sub {
   color: var(--muted);
   font-size: 13px;
 }
+
 .item-meta {
   text-align: right;
   color: var(--muted);
   font-size: 12px;
 }
+
+/* Destaque de pontos (ex.: ranking) */
 .points {
   color: #b45309;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-/* Tabela */
-.table-scroll {
-  overflow: auto;
-}
-.table table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 640px;
-}
-.table th,
-.table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  font-size: 14px;
-}
-.table th {
-  color: #374151;
-  background: #f9fafb;
-  position: sticky;
-  top: 0;
-}
-.center {
+/* =========================
+   Tabela (ajustes locais)
+   (Base da tabela está no global.css)
+========================= */
+.table .center {
   text-align: center;
 }
-.strong {
-  font-weight: 800;
-}
-.pos {
-  display: inline-grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f3f4f6;
-  font-weight: 700;
-  border: 1px solid #e5e7eb;
-}
-.pos.gold {
-  background: #fef3c7;
-  border-color: #fde68a;
-}
-.pos.silver {
-  background: #f3f4f6;
-}
-.pos.bronze {
-  background: #fde68a;
-}
-.dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-.dot.red {
-  background: #ef4444;
-}
-.dot.blue {
-  background: #3b82f6;
-}
-.dot.green {
-  background: #10b981;
-}
-.dot.yellow {
-  background: #f59e0b;
+
+.table .strong {
+  font-weight: 600;
 }
 
-/* Botões */
-.btn {
-  border: none;
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.04s ease, opacity 0.2s ease;
-}
-.btn:active {
-  transform: translateY(1px);
-}
-.btn.primary {
-  background: #4f46e5;
-}
-.btn.success {
-  background: #22c55e;
-}
-.btn.ghost {
-  background: #f3f4f6;
-  color: #111827;
-  border: 1px solid #e5e7eb;
-  width: 100%;
-  margin-top: 6px;
-}
-.actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-/* Responsividade */
+/* =========================
+   Responsividade específica
+========================= */
 @media (max-width: 1024px) {
   .metrics {
     grid-template-columns: repeat(2, 1fr);
   }
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
 }
+
 @media (max-width: 640px) {
-  .nav {
-    display: none;
-  }
-  .brand-name {
-    font-size: 14px;
-  }
   .metric-value {
     font-size: 24px;
   }
+
   .item {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
   }
+
   .item-meta {
     text-align: left;
   }
-  .actions {
-    flex-direction: column;
-  }
+}
+
+/* Ícones e títulos destacados */
+.lista-titulo-icone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #111827;
+}
+
+.lista-titulo-icone .emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Cores sutis por tipo de lista */
+.card[destaque="andamento"],
+.card.andamento {
+  border-left: 6px solid var(--green, #10b981);
+}
+
+.card[destaque="agendada"],
+.card.agendada {
+  border-left: 6px solid var(--orange, #f59e0b);
+}
+
+/* Margem entre itens */
+.list .items {
+  margin-top: 12px;
+}
+
+.ranking-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  color: #111827;
+  border-bottom: 2px solid var(--line, #e5e7eb);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.ranking-titulo .emoji {
+  font-size: 22px;
+  line-height: 1;
 }

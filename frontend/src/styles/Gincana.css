@@ -68,7 +68,7 @@
   background: var(--green-50);
   border: 1px solid var(--green-200);
   color: var(--green-700);
-  font-weight: 800;
+  font-weight: 600;
   font-size: 12px;
 }
 
@@ -122,7 +122,7 @@
 .btn {
   padding: 12px 14px;
   border-radius: 10px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
@@ -149,6 +149,299 @@
 /* responsivo */
 @media (max-width: 640px) {
   .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Cabeçalho e abas simples ===== */
+.gincana-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gincana-title {
+  margin: 0;
+}
+
+.gincana-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab-chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab-chip.active {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.28);
+}
+
+/* ===== Cartões com elevação e cor (kids-friendly) ===== */
+.card-elev {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.08);
+}
+
+.ico-title {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+/* ===== Grid de equipes da gincana ativa ===== */
+.eqs-card {
+  margin-top: 16px;
+}
+
+.teams-grid {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.team-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, .06);
+  transition: transform .06s ease, box-shadow .15s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(2, 6, 23, .10);
+}
+
+.team-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.team-emoji {
+  font-size: 20px;
+}
+
+.team-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.team-badge.on {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.team-badge.off {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.team-name {
+  margin-top: 8px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.team-id {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ===== Grid de gincanas encerradas ===== */
+.ended-grid {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.ended-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, #ffffff, #fff8f3);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, .06);
+}
+
+.ended-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ended-emoji {
+  font-size: 20px;
+}
+
+.ended-name {
+  margin-top: 8px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ended-dates {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.status-pill--ended {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* ===== Responsivo ===== */
+@media (max-width: 900px) {
+  .teams-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ended-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gincana-tabs {
+  margin-left: auto;
+}
+
+.acts-card {
+  margin-top: 16px;
+}
+
+.acts-grid {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.act-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, .06);
+  transition: transform .06s ease, box-shadow .15s ease;
+}
+
+.act-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(2, 6, 23, .10);
+}
+
+.act-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.act-emoji {
+  font-size: 20px;
+}
+
+.act-badge {
+  font-size: 12px;
+  font-weight: 600;
+  /* padrão 600 como você pediu */
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #334155;
+}
+
+/* variações por status (ex.: AGENDADA, ATIVA, ENCERRADA) */
+.act-badge.agendada {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.act-badge.ativa {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.act-badge.encerrada {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.act-title {
+  margin-top: 8px;
+  font-weight: 600;
+  /* 600 */
+  color: #0f172a;
+}
+
+.act-meta {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.act-tipo {
+  font-weight: 600;
+  /* 600 */
+}
+
+.act-sep {
+  opacity: .5;
+}
+
+.act-id {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Responsivo para atividades */
+@media (max-width: 900px) {
+  .acts-grid {
     grid-template-columns: 1fr;
   }
 }

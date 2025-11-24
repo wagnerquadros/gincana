@@ -1,0 +1,248 @@
+/* GRID GERAL */
+.equipes-wrap {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+/* LISTA */
+.equipes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.eq-titulo {
+    font-size: 28px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 4px 0 4px;
+}
+
+.eq-ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.eq-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.15s, border 0.15s;
+}
+
+.eq-card:hover {
+    background: #f9fafb;
+}
+
+.eq-card.ativo {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.eq-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.eq-nome {
+    font-weight: 600;
+    color: #111827;
+}
+
+.eq-sub {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.eq-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.eq-dot.on {
+    background: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, .15);
+}
+
+.eq-dot.off {
+    background: #9ca3af;
+}
+
+/* SEM DADOS */
+.eq-vazio {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* DETALHES */
+.equipes-detalhes {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
+    align-self: start;
+}
+
+.eq-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.eq-help {
+    color: #6b7280;
+}
+
+/* FORM */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.form-field label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.form-field input,
+.form-field select {
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.alert {
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin: 8px 0 12px;
+}
+
+.alert.erro {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.alert.sucesso {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* BOTÕES */
+.btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .04s, background .15s;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-sm {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.eq-tip {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+/* MODAL (igual ao dos usuários) */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, .45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+}
+
+.modal {
+    background: #fff;
+    padding: 18px;
+    border-radius: 12px;
+    max-width: 420px;
+    width: 92%;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, .25);
+    animation: modalShow .2s ease;
+}
+
+.modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.btn-close {
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+.btn-close:hover {
+    background: #f3f4f6;
+}
+
+@keyframes modalShow {
+    from {
+        opacity: 0;
+        transform: scale(.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+    .equipes-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .equipes-detalhes {
+        margin-top: 8px !important;
+    }
+}

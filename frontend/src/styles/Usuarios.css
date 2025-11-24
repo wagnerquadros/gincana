@@ -1,0 +1,362 @@
+/* ========= Usuarios.css ========= */
+/* Reaproveita a mesma paleta do projeto */
+:root {
+  --text: #0f172a;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --blue: #2563eb;
+  --blue-600: #1d4ed8;
+  --green: #16a34a;
+  --red: #dc2626;
+  --bg: #ffffff;
+
+  --pill-bg: #f8fafc;
+  --pill-border: #e5e7eb;
+  --shadow-soft: 0 10px 26px rgba(2, 6, 23, 0.08);
+  --shadow-hover: 0 12px 24px rgba(2, 6, 23, 0.10);
+}
+
+/* Página */
+.usuarios-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Alertas globais (reuso do padrão) */
+.alert-erro {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+/* Header com filtros (chips) */
+.usuarios-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titulo-area .titulo {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-chip {
+  border: 1px solid var(--line);
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-chip:hover {
+  background: #eef2f7;
+}
+
+.tab-chip.active {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+}
+
+/* Layout 2 colunas: lista + detalhes */
+.usuarios-layout {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* ====== LISTA ====== */
+.usuarios-lista {
+  height: fit-content;
+}
+
+.lista-cards-usuarios {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-card {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(2, 6, 23, 0.06);
+  cursor: pointer;
+  transition: transform .08s ease, box-shadow .15s ease, border-color .1s ease;
+}
+
+.user-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.user-card.ativo {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+/* Avatar pequeno (lista) */
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  border: 1px solid #e5e7eb;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-letra {
+  font-weight: 700;
+  color: #3730a3;
+  font-size: 16px;
+}
+
+/* Info principal (nome + email) */
+.user-info {
+  min-width: 0;
+  /* permite ellipsis */
+  display: flex;
+  flex-direction: column;
+}
+
+.user-nome {
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.user-email {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badges (role + status) */
+.user-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-pill,
+.status-pill {
+  font-size: 12px;
+  font-weight: 700;
+  /* padrão 600/700 do projeto */
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--pill-border);
+  background: var(--pill-bg);
+  color: #334155;
+  white-space: nowrap;
+}
+
+/* Role colors */
+.role-pill.adm {
+  background: #e0e7ff;
+  border-color: #c7d2fe;
+  color: #3730a3;
+}
+
+.role-pill.prof {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.role-pill.aluno {
+  background: #fef9c3;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+/* Status colors */
+.status-pill.ativo {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.status-pill.inativo {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* Estado vazio */
+.vazio {
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  text-align: center;
+  background: #fafafa;
+}
+
+/* ====== DETALHES ====== */
+.usuarios-detalhes {
+  height: fit-content;
+  min-height: 360px;
+}
+
+.detalhes-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Avatar grande (detalhes) */
+.avatar.grande {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  border: 1px solid #e5e7eb;
+}
+
+.avatar.grande img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.topo-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.det-nome {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.det-email {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Campos (labels e valores) */
+.detalhe-campo {
+  margin-bottom: 12px;
+}
+
+.campo-label {
+  display: block;
+  font-weight: 600;
+  /* mantendo 600 */
+  color: #374151;
+  /* cinza escuro */
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.campo-valor {
+  color: #6b7280;
+  /* cinza médio */
+  line-height: 1.45;
+  white-space: normal;
+  margin: 0;
+}
+
+/* Botões (reutiliza .btn, .btn-primary, .btn-danger globais) */
+.btn-row {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ====== Responsivo ====== */
+@media (max-width: 900px) {
+  .usuarios-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .usuarios-detalhes {
+    margin-top: 0 !important;
+    /* ignora offset alinhado no mobile */
+  }
+}
+
+/* Esticar os dois cards para terem a MESMA altura */
+.usuarios-layout {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+  align-items: stretch;
+  /* <— importante */
+}
+
+/* Faz os cards preencherem a altura da célula do grid */
+.usuarios-lista,
+.usuarios-detalhes {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* A lista cresce e rola se precisar */
+.lista-cards-usuarios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  /* ocupa o espaço disponível dentro do card */
+  overflow: auto;
+  /* rolagem quando a lista for grande */
+}
+
+/* O card de detalhes também ocupa toda a altura disponível */
+.usuarios-detalhes {
+  min-height: 360px;
+  /* pode ajustar conforme seu gosto */
+}
