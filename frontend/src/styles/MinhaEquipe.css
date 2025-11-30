@@ -9,6 +9,34 @@
     gap: 20px;
 }
 
+@media (min-width: 992px) {
+    .minha-equipe-container {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 20px;
+    }
+
+    .minha-equipe-container .me-card-header {
+        grid-column: 1 / -1;
+    }
+
+    .minha-equipe-container .me-card-pontuacao {
+        grid-column: 1;
+    }
+
+    .minha-equipe-container .me-card-membros {
+        grid-column: 2;
+    }
+
+    .minha-equipe-container .me-card-revisoes {
+        grid-column: 1 / -1;
+    }
+
+    .me-pontuacao-grid {
+        grid-template-columns: repeat(4, minmax(160px, 1fr));
+    }
+}
+
 /* Cabeçalho da equipe */
 .me-header-equipe {
     display: flex;

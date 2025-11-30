@@ -40,7 +40,13 @@ async function listarNotificacoes({ gincanaId, limit = 50 } = {}) {
   }
   const lista = snap.docs.map((d) => {
     const v = d.data() || {};
-    const dt = v.enviadaEm?.toDate ? v.enviadaEm.toDate() : (v.enviadaEm instanceof Date ? v.enviadaEm : new Date(v.enviadaEm));
+    let dt = null;
+    try {
+      const maybe = v.enviadaEm?.toDate
+        ? v.enviadaEm.toDate()
+        : (v.enviadaEm instanceof Date ? v.enviadaEm : new Date(v.enviadaEm));
+      if (maybe instanceof Date && !isNaN(maybe)) dt = maybe;
+    } catch {}
     return {
       id: d.id,
       gincanaId: v.gincanaId,
@@ -48,11 +54,15 @@ async function listarNotificacoes({ gincanaId, limit = 50 } = {}) {
       tipo: v.tipo,
       titulo: v.titulo,
       corpo: v.corpo,
-      enviadaEm: dt instanceof Date && !isNaN(dt) ? dt.toISOString() : new Date().toISOString(),
+      enviadaEm: dt ? dt.toISOString() : null,
       status: v.status,
     };
   });
-  lista.sort((a, b) => new Date(b.enviadaEm) - new Date(a.enviadaEm));
+  lista.sort((a, b) => {
+    const ta = a.enviadaEm ? new Date(a.enviadaEm).getTime() : 0;
+    const tb = b.enviadaEm ? new Date(b.enviadaEm).getTime() : 0;
+    return tb - ta;
+  });
   return lista;
 }
 

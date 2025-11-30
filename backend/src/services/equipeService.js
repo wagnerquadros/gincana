@@ -27,6 +27,7 @@ async function criarEquipe(equipeData) {
 
   const payload = {
     ...equipe.toObject(),
+    criadoEm: new Date(),
     atualizadoEm: new Date(),
   };
 

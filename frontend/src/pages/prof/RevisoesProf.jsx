@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
+import { obterGincanaAtiva } from "../../api/gincana";
 import { obterUsuario } from "../../api/usuarios";
 import { obterEquipe } from "../../api/equipes";
 
@@ -370,7 +371,15 @@ export default function RevisoesProf() {
       try {
         setErro("");
         setCarregando(true);
-        const { data } = await api.get("/revisoes");
+        const ativa = await obterGincanaAtiva();
+        if (!ativa?.id) {
+          if (!cancelado) {
+            setRevisoes([]);
+            setErro("Nenhuma gincana ativa.");
+          }
+          return;
+        }
+        const { data } = await api.get(`/revisoes?gincanaId=${ativa.id}`);
         if (cancelado) return;
         const arr = Array.isArray(data) ? data : [];
         const norm = arr.map((r) => ({ ...r, _status: normalizarStatus(r.status) }))

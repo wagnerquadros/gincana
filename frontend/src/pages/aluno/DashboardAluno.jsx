@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/client";
 import { obterGincanaAtiva } from "../../api/gincana";
+import { listarEquipesPorGincana } from "../../api/equipes";
 import { useAutenticacao } from "../../auth/useAutenticacao";
 import { obterUsuario } from "../../api/usuarios";
 import "../../styles/Dashboard.css";
@@ -160,9 +161,9 @@ export default function DashboardAluno() {
 
                 const gid = ativa.id;
 
-                // 2) Equipes
+                // 2) Equipes (somente da gincana ativa e ativas)
                 try {
-                    const { data: equipes } = await api.get(`/equipes?gincanaId=${gid}`);
+                    const equipes = await listarEquipesPorGincana(gid, { ativo: true });
                     setQEquipes(Array.isArray(equipes) ? equipes.length : 0);
                 } catch {
                     setQEquipes(0);

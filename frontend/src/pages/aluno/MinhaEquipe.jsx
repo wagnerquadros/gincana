@@ -194,7 +194,7 @@ export default function MinhaEquipe() {
 
             <div className="minha-equipe-container">
                 {/* Cabeçalho com nome da equipe e botão de trocar */}
-                <div className="card">
+                <div className="card me-card-header">
                     <div className="card-head me-header-equipe">
                         <div>
                             <h2 className="me-titulo-equipe">👥 {equipe.nome}</h2>
@@ -217,7 +217,7 @@ export default function MinhaEquipe() {
 
                 {/* Pontuação da equipe */}
                 {gincana && (
-                    <div className="card">
+                    <div className="card me-card-pontuacao">
                         <div className="card-head">🏆 Pontuação</div>
                         <div className="card-body">
                             <div className="me-pontuacao-grid">
@@ -243,7 +243,7 @@ export default function MinhaEquipe() {
                 )}
 
                 {/* Membros da equipe */}
-                <div className="card">
+                <div className="card me-card-membros">
                     <div className="card-head">
                         👥 Membros da Equipe ({membros.length} {membros.length === 1 ? "membro" : "membros"})
                     </div>
@@ -280,7 +280,7 @@ export default function MinhaEquipe() {
                 </div>
 
                 {/* Revisões da equipe */}
-                <div className="card">
+                <div className="card me-card-revisoes">
                     <div className="card-head">
                         🔎 Revisões da equipe
                     </div>

@@ -27,7 +27,13 @@ export default function NotificacoesProf() {
         }
         const { data } = await api.get(`/notificacoes?gincanaId=${ativa.id}`);
         const lista = Array.isArray(data) ? data : [];
-        setItens(lista);
+        const ids = new Set();
+        const uniq = [];
+        for (const n of lista) {
+          const id = n?.id ?? "";
+          if (!ids.has(id)) { ids.add(id); uniq.push(n); }
+        }
+        setItens(uniq);
       } catch (e) {
         console.error(e);
         setErro("Não foi possível carregar notificações.");
@@ -68,7 +74,7 @@ export default function NotificacoesProf() {
         corpo: c,
         status: "ENVIADA",
       });
-      setItens((prev) => [data, ...prev]);
+      setItens((prev) => [data, ...prev.filter((p) => p?.id !== data?.id)]);
       setShowModal(false);
       setTituloNovo("");
       setCorpoNovo("");
@@ -102,7 +108,7 @@ export default function NotificacoesProf() {
               <section key={n.id} className="card card-elev">
                 <div className="card-head" style={{ alignItems: "center", justifyContent: "space-between" }}>
                   <span className="lista-titulo-icone"><span className="emoji">🔔</span> {n.titulo || n.tipo}</span>
-                  <span className="muted">{new Date(n.enviadaEm).toLocaleString()}</span>
+                  <span className="muted">{n.enviadaEm ? new Date(n.enviadaEm).toLocaleString() : "-"}</span>
                 </div>
                 <div className="card-body">
                   <div>{n.corpo}</div>

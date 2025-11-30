@@ -108,6 +108,9 @@ async function calcularRankingGincana(gincanaId, { incluirMembros = true } = {})
 
   snap.forEach((doc) => {
     const d = doc.data();
+    if (d?.ativo === false) {
+      return;
+    }
 
     const pontuacoesIds = Array.isArray(d.pontuacoesIds) ? d.pontuacoesIds : [];
     // suporte legado: se ainda existir o antigo `pontuacoes` com objetos
@@ -124,6 +127,13 @@ async function calcularRankingGincana(gincanaId, { incluirMembros = true } = {})
   });
 
   // 3) ✅ OTIMIZAÇÃO: Busca pontuações e membros em paralelo
+  // 👉 Busca IDs de atividades da gincana para filtrar pontuações por atividade
+  const atvsSnap = await db
+    .collection("atividades")
+    .where("gincanaId", "==", gincanaId)
+    .get();
+  const atividadeIds = new Set(atvsSnap.docs.map((d) => d.id));
+
   const [pontMap, membrosMap] = await Promise.all([
     fetchPontuacoesByIds(allPontIds),
     incluirMembros
@@ -141,17 +151,19 @@ async function calcularRankingGincana(gincanaId, { incluirMembros = true } = {})
     if (eq.pontuacoesIds.length) {
       const docs = eq.pontuacoesIds
         .map((id) => pontMap.get(id))
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((p) => atividadeIds.has(p.atividadeId));
       pontos = sum(docs.map((p) => p.pontosObtidos));
       bonus = sum(docs.map((p) => p.bonus));
       penal = sum(docs.map((p) => p.penalidade));
       qtdPontuacoes = docs.length;
     } else if (eq.legadoObjs.length) {
       // Fallback para dados legados (objetos embutidos)
-      pontos = sum(eq.legadoObjs.map((p) => p.pontosObtidos));
-      bonus = sum(eq.legadoObjs.map((p) => p.bonus));
-      penal = sum(eq.legadoObjs.map((p) => p.penalidade));
-      qtdPontuacoes = eq.legadoObjs.length;
+      const leg = eq.legadoObjs.filter((p) => atividadeIds.has(p.atividadeId));
+      pontos = sum(leg.map((p) => p.pontosObtidos));
+      bonus = sum(leg.map((p) => p.bonus));
+      penal = sum(leg.map((p) => p.penalidade));
+      qtdPontuacoes = leg.length;
     }
 
     const total = pontos + bonus - penal;
