@@ -19,7 +19,7 @@ class Equipe {
     atualizadoEm = null
   ) {
     this.id = id;
-    this.gincana = gincana; 
+    this.gincanaId = gincanaId; 
     this.nome = nome;
     this.ativo = !!ativo;
     this.pontuacoesIds = Array.isArray(pontuacoesIds) ? pontuacoesIds : [];
@@ -31,7 +31,7 @@ class Equipe {
   toObject() {
     return {
       id: this.id,
-      gincana: typeof this.gincana === "object" ? this.gincana.id : this.gincana,
+      gincanaId: this.gincanaId,
       nome: this.nome,
       ativo: this.ativo,
       pontuacoesIds: this.pontuacoesIds,

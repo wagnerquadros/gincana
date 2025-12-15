@@ -6,13 +6,14 @@ import {
   atualizarEquipe,
   obterEquipe,
 } from "../../api/equipes";
-import { obterGincanaAtiva } from "../../api/gincana";
+import { obterGincanaAtiva, listarGincanas } from "../../api/gincana";
 import api from "../../api/client";
 import "../../styles/Equipes.css";
 
 export default function EquipesProf() {
   // ===== State =====
   const [gincanaAtiva, setGincanaAtiva] = useState(null);
+  const [todasGincanas, setTodasGincanas] = useState([]); // Para o select
 
   const [equipes, setEquipes] = useState([]); // [{id, nome, ativo, gincanaId, gincanaNome, criadoEm?}]
   const [busca, setBusca] = useState("");
@@ -48,6 +49,10 @@ export default function EquipesProf() {
     try {
       const ativa = await obterGincanaAtiva();
       setGincanaAtiva(ativa || null);
+
+      // Carrega todas as gincanas para o select
+      const todas = await listarGincanas();
+      setTodasGincanas(todas || []);
 
       const data = await listarEquipes();
       const normalizadas = (data || []).map((e) => ({
@@ -151,7 +156,7 @@ export default function EquipesProf() {
     setOk("");
     setNova({
       nome: "",
-      gincanaId: gincanaAtiva?.id || "",
+      gincanaId: gincanaAtiva?.id || todasGincanas[0]?.id || "",
     });
     setModalCriar(true);
   }
@@ -179,8 +184,9 @@ export default function EquipesProf() {
       setModalCriar(false);
       await carregarBase();
     } catch (err) {
-      console.error(err);
-      setErro("Falha ao criar equipe.");
+      console.error("Erro ao criar equipe:", err);
+      const mensagemErro = err?.response?.data?.error || err?.message || "Falha ao criar equipe.";
+      setErro(mensagemErro);
     } finally {
       setSalvando(false);
     }
@@ -562,9 +568,11 @@ export default function EquipesProf() {
                   required
                 >
                   <option value="">Selecione...</option>
-                  {gincanaAtiva?.id && (
-                    <option value={gincanaAtiva.id}>{gincanaAtiva.nome}</option>
-                  )}
+                  {todasGincanas.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.nome} {g.status === "ATIVA" ? "(Ativa)" : `(${g.status || "Inativa"})`}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -644,9 +652,11 @@ export default function EquipesProf() {
                   required
                 >
                   <option value="">Selecione...</option>
-                  {gincanaAtiva?.id && (
-                    <option value={gincanaAtiva.id}>{gincanaAtiva.nome}</option>
-                  )}
+                  {todasGincanas.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.nome} {g.status === "ATIVA" ? "(Ativa)" : `(${g.status || "Inativa"})`}
+                    </option>
+                  ))}
                 </select>
               </div>
 

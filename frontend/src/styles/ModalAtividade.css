@@ -11,10 +11,14 @@
 .modal-card {
     width: 100%;
     max-width: 720px;
+    max-height: 90vh;
     background: #fff;
     border-radius: 14px;
     border: 1px solid var(--line);
     padding: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modal-head {
@@ -22,6 +26,38 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+/* Form com scroll */
+.modal-card form {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    padding-right: 4px;
+    padding-bottom: 8px;
+    /* Espaço para scrollbar e margem inferior */
+    min-height: 0;
+    /* Importante para flex funcionar corretamente */
+}
+
+/* Scrollbar customizada */
+.modal-card form::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-card form::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.modal-card form::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.modal-card form::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 /* Bloco de posição */
