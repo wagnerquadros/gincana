@@ -1,127 +1,145 @@
-# Grupo 01
+# 🏆 Gincana App — Grupo 01
 
-# Gincana App
+> Um sistema para organizar gincanas escolares do jeito que elas merecem: com equipes, atividades, pontuação em tempo real e ranking sem discussão no pátio.
 
-[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-5+-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+Projeto desenvolvido para a componente curricular **Resolução de Problemas VI**, do curso de Engenharia de Software da UNIPAMPA. A proposta é digitalizar a organização de uma gincana escolar: cadastro de alunos, pais e professores, formação de equipes, criação de atividades pontuáveis e cálculo automático do ranking.
+
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-^4-000000?logo=express&logoColor=white)](https://expressjs.com/)
-[![Firebase](https://img.shields.io/badge/Firebase-Platform-FFCA28?logo=firebase&logoColor=000)](https://firebase.google.com/)
+[![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFCA28?logo=firebase&logoColor=000)](https://firebase.google.com/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-## Clonando o repositório
+---
 
-```
-cd existing_repo
-git remote add origin https://gitlab.unipampa.edu.br/ales/rp-vi-2025-2/grupo-01.git
-git branch -M main
-git push -uf origin main
-```
+## 🎯 O que o sistema resolve
 
-## 📌 Fluxo de Branches e Commits
+Toda gincana escolar tem os mesmos problemas: planilha de pontos que ninguém atualiza, equipe que some no meio da atividade e discussão sobre quem ganhou o quê. O **Gincana App** ataca isso com quatro papéis bem definidos e um fluxo simples: organizador cria a gincana e as atividades, equipes disputam pontos, e o ranking é calculado automaticamente a partir das pontuações lançadas.
 
-### Branches
+| Papel | O que faz |
+|---|---|
+| 🛡️ **ADM** | Administra o sistema como um todo |
+| 🎪 **Organizador** | Cria gincanas, atividades e lança pontuações |
+| 🎓 **Aluno** | Participa das equipes e atividades |
+| 👨‍👩‍👧 **Pai** | Acompanha o desempenho do filho vinculado |
 
-- **main**: código de produção. Recebe apenas merges de release.
-- **develop**: integração contínua. Base para novas funcionalidades.
-- **feature/\***: implementações a partir de `develop`. Ex.: `feature/usuario-crud`
-- **fix/\***: correções não críticas a partir de `develop`. Ex.: `fix/validacao-email`
-- **hotfix/\***: correções urgentes a partir de `main`. Ex.: `hotfix/cors-500`
+---
 
-> Commits diretos em `main` e `develop` são proibidos. Use PR.
-
-## 🧾 Commits Semânticos
-
-**Formato:**
+## 🗂️ Estrutura do repositório
 
 ```
-<type>(<scope>): <mensagem curta no imperativo>
-
-[corpo opcional]
+gincana/
+├── frontend/     → React 19 + Vite + TailwindCSS
+├── backend/      → Node.js + Express + Firebase Firestore
+└── docs/         → Arquitetura, setup, workflow, style guide, deploy
 ```
 
-**Regras:**
+### 🖥️ Frontend (`frontend/`)
 
-- Use **imperativo** na mensagem curta (ex.: “adiciona”, “corrige”, “atualiza”).
-- Máx. ~72 caracteres na primeira linha.
-- O `scope` é **opcional**, mas recomendado (ex.: `api`, `auth`, `pontuacao`, `infra`).
-- Uma linha em branco separa o título do corpo.
+React 19 com Vite, TailwindCSS 4 e React Router 7. Estado global via Context API, ícones com `lucide-react`. A primeira tela funcional é a gestão de equipes (`EquipesGestor.jsx`), com modais de criação, edição, visualização e exclusão consumindo a API do backend.
 
-**Tipos:**
+### ⚙️ Backend (`backend/`)
 
-- `feat` – nova funcionalidade
-- `fix` – correção de bug
-- `docs` – apenas documentação (README, comentários)
-- `style` – formatação/estilo (sem alterar lógica; ex.: lint, espaços)
-- `refactor` – refatoração (sem nova feature/bugfix)
-- `test` – testes (unitários, integração, mocks)
-- `build` – mudanças de build/dep (Maven/Gradle, Docker, npm)
+API em Express organizada em camadas (`controllers → services → repositories/models`), com:
 
-**Exemplos:**
+- **Autenticação JWT** — login, rota protegida (`/auth/me`) e logout via blacklist de token
+- **Firebase Firestore** como banco principal, com **fallback para JSON local** (`data/local_users.json`) quando `USE_FIREBASE=false` — dá pra rodar o backend inteiro sem depender de credencial de Firebase
+- **Cálculo de ranking** automático por gincana, somando pontos, bônus e penalidades de cada equipe
 
-- feat(pontuacao): adiciona endpoint para somar pontos por equipe
-- fix(auth): corrige validação de token expirado no filtro
-- docs(readme): documenta fluxo de branches e commits
-- style(api): aplica formatador e organiza imports
-- refactor(service): extrai cálculo de ranking para classe dedicada
-- test(controller): adiciona testes GET /api/pontuacoes
-- build(gradle): adiciona plugin jacoco para cobertura
+---
 
-## 🧰 Tecnologias
+## 🧬 Modelo de domínio
 
-### Frontend
+```
+Gincana ──< Atividade ──< Pontuacao >── Equipe ──< Aluno ── Usuario
+                                                      └──< Pai
+```
 
-- **React** (18+) + **Vite** (dev server e build)
-- **React DOM**
-- **CSS Modules / Tailwind (opcional)**
+| Entidade | Papel no domínio |
+|---|---|
+| `Gincana` | O evento em si (nome, período, status: ATIVA / ENCERRADA / INATIVA) |
+| `Atividade` | Uma prova/desafio da gincana, com pontos para 1º, 2º e 3º lugar e tipo (`COMPETICAO`, `QUIZ`, `ARRECADACAO`, `SOCIAL`, `ESPORTIVA`...) |
+| `Equipe` | Grupo de alunos disputando a gincana, acumula pontuações |
+| `Pontuacao` | Pontos obtidos por uma equipe em uma atividade, com bônus e penalidade |
+| `Usuario` | Conta base (nome, e-mail, senha, `role`) usada por Aluno, Pai, Organizador e ADM |
+| `Notificacao` | Avisos vinculados a uma gincana/atividade, com status de envio |
+
+---
+
+## 🔌 Principais endpoints
+
+```
+POST   /auth/login              → autentica e retorna token JWT
+GET    /auth/me                 → dados do usuário autenticado
+POST   /auth/logout             → invalida o token (blacklist)
+
+GET    /equipes                 → lista equipes
+POST   /equipes                 → cria equipe
+GET    /equipes/:id             → detalhes de uma equipe
+PUT    /equipes/:id             → atualiza equipe
+DELETE /equipes/:id             → remove equipe
+
+GET    /gincanas                → lista gincanas
+POST   /gincanas                → cria gincana
+GET    /gincanas/:id            → detalhes de uma gincana
+PUT    /gincanas/:id            → atualiza gincana
+PATCH  /gincanas/:id/encerrar   → encerra a gincana
+DELETE /gincanas/:id            → remove gincana
+GET    /gincanas/:id/ranking    → ranking calculado das equipes
+
+PATCH  /atividades/:id/encerrar → encerra uma atividade
+```
+
+---
+
+## 🚀 Rodando o projeto localmente
 
 ### Backend
 
-- **Node.js** (18+)
-- **Express** (roteamento e middlewares)
-
-### Banco de Dados / Cloud
-
-- **Firebase**
-  - **Firestore** (BD NoSQL)
-  - **Authentication** (login)
-  - **Storage** (arquivos/imagens) _(opcional)_
-  - **Emulators** (desenvolvimento local)
-
-## Estrutura de Pastas (início)
-
-```text
-meu-projeto/
-│
-├── frontend/              # Aplicação React
-│   ├── public/
-│   │   └── index.html
-│   ├── src/
-│   │   ├── assets/        # Imagens, ícones, fontes...
-│   │   ├── components/    # Componentes reutilizáveis
-│   │   ├── pages/         # Páginas principais (Home, Login, etc.)
-│   │   ├── hooks/         # Custom hooks
-│   │   ├── context/       # Context API (estado global)
-│   │   ├── services/      # Conexão com API (axios/fetch)
-│   │   ├── routes/        # Definições de rotas
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── .env               # Variáveis de ambiente (ex: URL da API)
-│   ├── package.json
-│   └── vite.config.js     # ou webpack.config.js, dependendo do bundler
-│
-├── backend/               # API Node.js
-│   ├── src/
-│   │   ├── config/        # Configurações (db, cors, auth...)
-│   │   ├── controllers/   # Lógica dos endpoints
-│   │   ├── data/          # Acesso a dados (mock ou queries)
-│   │   ├── middlewares/   # Middlewares (auth, erros, logs...)
-│   │   ├── models/        # Modelos de dados (caso use ORM)
-│   │   ├── routes/        # Rotas da API
-│   │   ├── services/      # Lógica de negócio
-│   │   └── server.js      # Arquivo principal
-│   ├── .env
-│   └── package.json
-│
-├── .gitignore
-├── README.md
+```bash
+cd backend
+npm install
+cp .env.example .env   # ajuste JWT_SECRET e USE_FIREBASE
+npm start               # ou: npm run dev (com nodemon)
 ```
+
+Sem Firebase configurado, o backend cai automaticamente para os usuários de `data/local_users.json` — ótimo para testar sem depender de credenciais externas. Para usar o Firestore de verdade, gere um Service Account no console do Firebase, salve como indicado em `backend/notes/PUT_SERVICE_ACCOUNT_HERE.txt` e defina `USE_FIREBASE=true`.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📚 Documentação
+
+O projeto mantém documentação viva em `docs/`, incluindo:
+
+- [`arquitetura.md`](docs/arquitetura.md) — visão geral das camadas e stack
+- [`setup.md`](docs/setup.md) — dependências e configuração detalhada
+- [`workflow.md`](docs/workflow.md) — fluxo de branches (`main`, `develop`, `feature/*`, `fix/*`, `hotfix/*`)
+- [`styleguide.md`](docs/styleguide.md) — padrões de código e organização de pastas
+- [`contributing.md`](docs/contributing.md) — como contribuir
+- [`deploy.md`](docs/deploy.md) — estratégia de deploy (Vercel para o front, Render/Railway para o back, Firestore como banco)
+- `Gincana_-_Documentação_Base.pdf` e diagramas de classes (`docs/classes/`)
+
+---
+
+## 🧾 Commits semânticos
+
+```
+<tipo>(<escopo>): <mensagem curta no imperativo>
+```
+
+`feat` · `fix` · `docs` · `style` · `refactor` · `test` · `build` — commits diretos em `main`/`develop` são proibidos, tudo passa por PR a partir de `feature/*`.
+
+---
+
+## 👥 Grupo 01
+
+Repositório mantido pelo Grupo 01 da disciplina de Resolução de Problemas VI — Engenharia de Software, UNIPAMPA.
